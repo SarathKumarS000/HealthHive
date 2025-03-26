@@ -1,5 +1,6 @@
 # HealthHive
 **Project Idea: Community Health and Well-being Platform**
+
 **Overview**
 
 This platform would focus on improving community health and well-being by providing a centralized place for residents to track and manage their physical and mental health. The idea is to create a system that integrates personal health monitoring, local health resources, peer support systems, and mental health assistance.
