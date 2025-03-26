@@ -85,7 +85,7 @@ const Dashboard = () => {
               <MoodIcon sx={{ fontSize: 40, color: "#FFC107", mr: 2 }} />
               <CardContent>
                 <Typography variant="h6">Mood</Typography>
-                <Typography variant="h4">{healthData.mood || "N/A"}</Typography>
+                <Typography variant="h4">{healthData.mood ? healthData.mood.charAt(0).toUpperCase() + healthData.mood.slice(1) : "N/A"}</Typography>
               </CardContent>
             </Card>
           </Grid>

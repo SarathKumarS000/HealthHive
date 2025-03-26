@@ -24,7 +24,7 @@ public class HealthResourceController {
     public List<HealthResource> getResourcesByCategory(@PathVariable String category) {
         return service.getResourcesByCategory(category);
     }
-
+    
     @PostMapping
     public HealthResource addResource(@RequestBody HealthResource resource) {
         return service.addResource(resource);

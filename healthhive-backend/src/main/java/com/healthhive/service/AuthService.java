@@ -2,7 +2,6 @@ package com.healthhive.service;
 
 import com.healthhive.dto.AuthRequest;
 import com.healthhive.dto.AuthResponse;
-import com.healthhive.dto.RegisterRequest;
 import com.healthhive.model.User;
 import com.healthhive.repository.UserRepository;
 import com.healthhive.util.JwtUtil;

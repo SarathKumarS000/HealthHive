@@ -14,6 +14,7 @@ import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import HotelIcon from "@mui/icons-material/Hotel";
 import MoodIcon from "@mui/icons-material/Mood";
+import { moods, moodColors } from "../utils/commons";
 
 // ** Register the required Chart.js components **
 ChartJS.register(CategoryScale, LinearScale, ArcElement, Tooltip, Legend);
@@ -21,36 +22,6 @@ ChartJS.register(CategoryScale, LinearScale, ArcElement, Tooltip, Legend);
 const CommunityInsights = () => {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const moods = [
-    { key: "happy", label: "Happy 😊" },
-    { key: "neutral", label: "Neutral 😐" },
-    { key: "sad", label: "Sad 😢" },
-    { key: "stressed", label: "Stressed 😰" },
-    { key: "excited", label: "Excited 🤩" },
-    { key: "relaxed", label: "Relaxed 😌" },
-    { key: "angry", label: "Angry 😡" },
-    { key: "tired", label: "Tired 😴" },
-    { key: "anxious", label: "Anxious 😟" },
-    { key: "motivated", label: "Motivated 🚀" },
-    { key: "bored", label: "Bored 🥱" },
-    { key: "", label: "No Mood ❔" },
-  ];
-
-  const moodColors = {
-    happy: "rgba(255, 206, 86, 0.6)", // Yellow
-    neutral: "rgba(153, 102, 255, 0.6)", // Purple
-    sad: "rgba(54, 162, 235, 0.6)", // Blue
-    stressed: "rgba(255, 99, 132, 0.6)", // Red
-    excited: "rgba(255, 165, 0, 0.6)", // Orange
-    relaxed: "rgba(60, 179, 113, 0.6)", // Green
-    angry: "rgba(255, 69, 0, 0.6)", // Dark Red
-    tired: "rgba(169, 169, 169, 0.6)", // Dark Gray
-    anxious: "rgba(238, 130, 238, 0.6)", // Pinkish Purple
-    motivated: "rgba(0, 128, 255, 0.6)", // Bright Blue
-    bored: "rgba(192, 192, 192, 0.6)", // Light Gray
-    "": "rgba(200, 200, 200, 0.6)", // Gray for No Mood
-  };
 
   useEffect(() => {
     axiosConfig
@@ -167,26 +138,26 @@ const CommunityInsights = () => {
         Mood Distribution
       </Typography>
       <div style={{ maxWidth: "500px", margin: "0 auto" }}>
-      <Pie
-        data={{
-          labels: moodLabels,
-          datasets: [
-            {
-              label: "Number of People",
-              data: moodData,
-              backgroundColor: moodColorsArray,
+        <Pie
+          data={{
+            labels: moodLabels,
+            datasets: [
+              {
+                label: "Number of People",
+                data: moodData,
+                backgroundColor: moodColorsArray,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "right",
+              },
             },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "right",
-            },
-          },
-        }}
-      />
+          }}
+        />
       </div>
     </Container>
   );

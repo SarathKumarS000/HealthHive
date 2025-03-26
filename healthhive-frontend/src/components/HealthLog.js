@@ -15,6 +15,7 @@ import {
   CardContent,
 } from "@mui/material";
 import axiosConfig from "../utils/axiosConfig";
+import { moodOptions } from "../utils/commons";
 
 const HealthLog = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -25,20 +26,6 @@ const HealthLog = () => {
     mood: "",
   });
   const [message, setMessage] = useState(null);
-
-  const moods = [
-    { key: "Happy 😊", value: "happy" },
-    { key: "Neutral 😐", value: "neutral" },
-    { key: "Sad 😢", value: "sad" },
-    { key: "Stressed 😰", value: "stressed" },
-    { key: "Excited 🤩", value: "excited" },
-    { key: "Relaxed 😌", value: "relaxed" },
-    { key: "Angry 😡", value: "angry" },
-    { key: "Tired 😴", value: "tired" },
-    { key: "Anxious 😟", value: "anxious" },
-    { key: "Motivated 🚀", value: "motivated" },
-    { key: "Bored 🥱", value: "bored" },
-  ];
 
   const handleChange = (e) => {
     setHealthData({ ...healthData, [e.target.name]: e.target.value });
@@ -114,8 +101,12 @@ const HealthLog = () => {
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Mood</InputLabel>
-                  <Select name="mood" value={healthData.mood} onChange={handleChange}>
-                    {moods.map((mood) => (
+                  <Select
+                    name="mood"
+                    value={healthData.mood}
+                    onChange={handleChange}
+                  >
+                    {moodOptions.map((mood) => (
                       <MenuItem key={mood.value} value={mood.value}>
                         {mood.key}
                       </MenuItem>

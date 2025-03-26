@@ -2,7 +2,6 @@ package com.healthhive.controller;
 
 import com.healthhive.dto.AuthRequest;
 import com.healthhive.dto.AuthResponse;
-import com.healthhive.dto.RegisterRequest;
 import com.healthhive.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
