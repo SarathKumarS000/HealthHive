@@ -1,22 +1,41 @@
 package com.healthhive.controller;
 
-import com.healthhive.dto.MentalHealthDTO;
-import com.healthhive.service.MentalHealthService;
-import lombok.RequiredArgsConstructor;
+import com.healthhive.model.MentalHealthMessage;
+import com.healthhive.repository.MentalHealthRepository;
+import com.healthhive.service.MentalHealthSupportService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @CrossOrigin("*")
-@RequestMapping("/api/mentalhealth")
-@RequiredArgsConstructor
+@RequestMapping("/api/mental-messages")
 public class MentalHealthController {
 
-    private final MentalHealthService mentalHealthService;
+    @Autowired
+    private MentalHealthRepository repository;
 
-    @PostMapping("/check-in")
-    public ResponseEntity<String> checkIn(@RequestBody MentalHealthDTO mentalHealth) {
-        mentalHealthService.logCheckIn(mentalHealth);
-        return ResponseEntity.ok("Mental health check-in logged!");
+    @Autowired
+    private MentalHealthSupportService service;
+
+    @GetMapping
+    public ResponseEntity<?> getAllMessagesWithReactions() {
+        return ResponseEntity.ok(service.getAllMessagesWithReactions());
+    }
+
+    @PostMapping
+    public ResponseEntity<?> postMessage(@Valid @RequestBody MentalHealthMessage message) {
+        message.setTimestamp(LocalDateTime.now());
+        MentalHealthMessage saved = repository.save(message);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/{id}/react")
+    public ResponseEntity<?> react(@PathVariable Long id, @RequestParam String type) {
+        service.reactToMessage(id, type);
+        return ResponseEntity.ok().build();
     }
 }
