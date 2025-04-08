@@ -11,9 +11,13 @@ import {
   Paper,
   MenuItem,
 } from "@mui/material";
-import api from "../utils/axiosConfig";
+import {
+  getEmergencyContacts,
+  addEmergencyContact,
+} from "../services/apiService";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { useSelector } from "react-redux";
 
 const EmergencySupport = () => {
   const [contacts, setContacts] = useState([]);
@@ -23,15 +27,12 @@ const EmergencySupport = () => {
     relationship: "",
   });
   const [formError, setFormError] = useState("");
-  const { username } = JSON.parse(localStorage.getItem("user"));
+  const { username } = useSelector((state) => state.auth.user);
 
-  const getContacts = async () => {
-    try {
-      const res = await api.get(`/emergency-contacts/${username}`);
-      setContacts(res.data);
-    } catch (err) {
-      console.error("Error fetching contacts", err);
-    }
+  const getContacts = () => {
+    getEmergencyContacts(username)
+      .then((res) => setContacts(res.data))
+      .catch((err) => console.error("Error fetching contacts", err));
   };
 
   const isValidPhoneNumber = (phone) => {
@@ -53,7 +54,7 @@ const EmergencySupport = () => {
     }
 
     try {
-      await api.post("/emergency-contacts", { ...form, username });
+      await addEmergencyContact({ ...form, username });
       setForm({ name: "", phoneNumber: "", relationship: "" });
       setFormError("");
       getContacts();
@@ -65,7 +66,7 @@ const EmergencySupport = () => {
 
   useEffect(() => {
     getContacts();
-  }, []);
+  });
 
   return (
     <Box sx={{ mt: 4, px: 3 }}>

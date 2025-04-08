@@ -16,9 +16,10 @@ import {
 import EventIcon from "@mui/icons-material/Event";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import axiosConfig from "../utils/axiosConfig";
+import { fetchAllResources, bookAppointment } from "../services/apiService";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const generateDateTimeSlots = () => {
   const slots = [];
@@ -46,6 +47,7 @@ const generateDateTimeSlots = () => {
 
 const BookAppointment = () => {
   const location = useLocation();
+  const user = useSelector((state) => state.auth.user);
   const selectedResource = location.state?.selectedResource || null;
 
   const [resources, setResources] = useState([]);
@@ -58,8 +60,7 @@ const BookAppointment = () => {
   const dateTimeSlots = generateDateTimeSlots();
 
   useEffect(() => {
-    axiosConfig
-      .get("/resources")
+    fetchAllResources()
       .then((response) => {
         const availableResources = response.data.filter(
           (res) => res.appointmentAvailable
@@ -74,7 +75,6 @@ const BookAppointment = () => {
   };
 
   const handleSubmit = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
       return setMessage({ type: "error", text: "User not logged in!" });
     }
@@ -83,7 +83,7 @@ const BookAppointment = () => {
     }
 
     try {
-      await axiosConfig.post("/appointments", {
+      await bookAppointment({
         user: { id: user.id },
         resource: { id: appointment.resourceId },
         appointmentTime: appointment.dateTime,

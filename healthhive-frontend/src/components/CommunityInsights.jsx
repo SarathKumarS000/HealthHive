@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Typography, Card, CardContent, Grid } from "@mui/material";
 import { Pie } from "react-chartjs-2";
-import axiosConfig from "../utils/axiosConfig";
+import { fetchInsights } from "../services/apiService";
 import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import HotelIcon from "@mui/icons-material/Hotel";
@@ -13,8 +13,7 @@ const CommunityInsights = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axiosConfig
-      .get("/insights")
+    fetchInsights()
       .then((response) => {
         setInsights(response.data);
         setLoading(false);
@@ -126,7 +125,7 @@ const CommunityInsights = () => {
       <Typography variant="h5" sx={{ mt: 4 }}>
         Mood Distribution
       </Typography>
-      <div style={{ maxWidth: "500px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "500px", height: "400px", margin: "0 auto" }}>
         <Pie
           data={{
             labels: moodLabels,
@@ -140,10 +139,18 @@ const CommunityInsights = () => {
           }}
           options={{
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 position: "right",
               },
+            },
+            interaction: {
+              mode: "nearest",
+              intersect: false,
+            },
+            animation: {
+              duration: 0,
             },
           }}
         />

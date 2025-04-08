@@ -62,7 +62,7 @@ public class MentalHealthSupportService {
             }
 
             map.put("reactions", counts);
-            map.put("userReaction", userReaction); // 👈 highlight this on frontend
+            map.put("userReaction", userReaction);
             result.add(map);
         }
 

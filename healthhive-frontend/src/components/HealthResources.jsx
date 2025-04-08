@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosConfig from "../utils/axiosConfig";
+import { fetchResources, addResource } from "../services/apiService";
 import {
   Container,
   Typography,
@@ -44,13 +44,11 @@ const HealthResources = () => {
   });
 
   useEffect(() => {
-    fetchResources();
+    fetchAllResources();
   }, [category]);
 
-  const fetchResources = () => {
-    const url = category ? `/resources/${category}` : "/resources";
-    axiosConfig
-      .get(url)
+  const fetchAllResources = () => {
+    fetchResources(category)
       .then((response) => setResources(response.data))
       .catch((error) => console.error("Error fetching resources", error));
   };
@@ -82,8 +80,8 @@ const HealthResources = () => {
 
   const handleSubmit = async () => {
     try {
-      await axiosConfig.post("/resources", newResource);
-      fetchResources();
+      await addResource(newResource);
+      fetchAllResources();
       handleClose();
     } catch (error) {
       console.error("Failed to add resource", error);

@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCurrentUser } from "./utils/auth";
+import { loginSuccess, logout, setAuthChecked } from "./redux/authSlice";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Dashboard from "./components/Dashboard";
@@ -17,7 +20,43 @@ import HealthChallenges from "./components/HealthChallenges";
 import Login from "./components/Login";
 import Register from "./components/Register";
 
-function App() {
+const App = () => {
+  const dispatch = useDispatch();
+  const authChecked = useSelector((state) => state.auth.authChecked);
+
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    if (currentPath !== "/login" && currentPath !== "/register") {
+      const loadUser = async () => {
+        try {
+          const user = await fetchCurrentUser();
+          if (user) dispatch(loginSuccess(user));
+          else dispatch(logout());
+        } catch (err) {
+          dispatch(logout());
+        } finally {
+          dispatch(setAuthChecked(true));
+        }
+      };
+      loadUser();
+    } else {
+      dispatch(setAuthChecked(true));
+    }
+  }, [dispatch]);
+
+  if (!authChecked) {
+    return (
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Router>
       <Navbar />
@@ -42,6 +81,6 @@ function App() {
       </Box>
     </Router>
   );
-}
+};
 
 export default App;

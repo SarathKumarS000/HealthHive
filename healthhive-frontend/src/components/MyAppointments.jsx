@@ -10,20 +10,20 @@ import {
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import axiosConfig from "../utils/axiosConfig";
+import { fetchAppointments } from "../services/apiService";
+import { useSelector } from "react-redux";
 
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
-      axiosConfig
-        .get(`/appointments/${user.id}`)
+      fetchAppointments(user.id)
         .then((response) => setAppointments(response.data))
         .catch((error) => console.error("Error fetching appointments", error));
     }
-  }, []);
+  }, [user]);
 
   return (
     <Container>

@@ -6,11 +6,16 @@ import {
   Typography,
   Alert,
   Box,
+  Paper,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
-import axios from "../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
+import { login } from "../services/apiService";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -18,17 +23,17 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/auth/login", credentials);
+      const response = await login(credentials);
       dispatch(loginSuccess(response.data));
       navigate("/");
     } catch (err) {
@@ -37,34 +42,55 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="xs">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>
-        Login
-      </Typography>
-      {error && <Alert severity="error">{error}</Alert>}
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-      >
-        <TextField
-          label="Username"
-          name="username"
-          type="text"
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          onChange={handleChange}
-          required
-        />
-        <Button type="submit" variant="contained">
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Typography variant="h4" align="center" gutterBottom>
           Login
-        </Button>
-      </Box>
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          <TextField
+            label="Username"
+            name="username"
+            value={credentials.username}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={credentials.password}
+            onChange={handleChange}
+            required
+            fullWidth
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button type="submit" variant="contained" fullWidth>
+            Login
+          </Button>
+        </Box>
+      </Paper>
     </Container>
   );
 };

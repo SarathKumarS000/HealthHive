@@ -8,6 +8,7 @@ import com.healthhive.repository.UserRepository;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,12 +20,12 @@ public class HealthService {
 
     public void logHealthData(HealthDataDTO dto) {
         User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
-        HealthData healthData = new HealthData(null, user, dto.getSteps(), dto.getCalories(), dto.getWeight(), dto.getSleepHours(), dto.getMood());
+        HealthData healthData = new HealthData(null, user, dto.getSteps(), dto.getCalories(), dto.getWeight(), dto.getSleepHours(), dto.getMood(), LocalDateTime.now());
         healthDataRepository.save(healthData);
     }
 
     public List<HealthData> getUserHealthData(Long userId) {
-        return healthDataRepository.findByUserId(userId);
+        return healthDataRepository.findByUserIdOrderByDateAsc(userId);
     }
 }
 

@@ -18,7 +18,11 @@ import {
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
-import api from "../utils/axiosConfig";
+import {
+  fetchMentalMessages,
+  postMentalMessage,
+  reactToMentalMessage,
+} from "../services/apiService";
 
 const reactionIcons = {
   like: <ThumbUpIcon color="primary" />,
@@ -44,15 +48,15 @@ const MentalHealthSupport = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/mental-messages");
-      setMessages(res.data);
-    } catch (err) {
-      console.error("Error fetching messages", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to load messages.",
-        severity: "error",
-      });
+      fetchMentalMessages()
+        .then((res) => setMessages(res.data))
+        .catch(() =>
+          setSnackbar({
+            open: true,
+            message: "Failed to load messages.",
+            severity: "error",
+          })
+        );
     } finally {
       setLoading(false);
     }
@@ -72,7 +76,7 @@ const MentalHealthSupport = () => {
 
     setPosting(true);
     try {
-      await api.post("/mental-messages", { content: message });
+      await postMentalMessage(message);
       setMessage("");
       await fetchMessages();
       setSnackbar({
@@ -94,9 +98,7 @@ const MentalHealthSupport = () => {
 
   const reactToMessage = async (messageId, type) => {
     try {
-      await api.post(`/mental-messages/${messageId}/react`, null, {
-        params: { type: type },
-      });
+      await reactToMentalMessage(messageId, type);
       fetchMessages();
     } catch (err) {
       console.error("Error sending reaction", err);

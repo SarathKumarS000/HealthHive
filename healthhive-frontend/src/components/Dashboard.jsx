@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axiosConfig from "../utils/axiosConfig";
 import {
   Container,
   Typography,
@@ -19,18 +18,19 @@ import {
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import dayjs from "dayjs";
+import { useSelector } from "react-redux";
+import { fetchHealthData } from "../services/apiService";
 
 const Dashboard = () => {
+  const userDetails = useSelector((state) => state.auth.user);
   const [healthData, setHealthData] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userDetails = JSON.parse(localStorage.getItem("user"));
     if (userDetails?.id) {
       setUser(userDetails);
-      axiosConfig
-        .get(`/health/${userDetails.id}`)
+      fetchHealthData(userDetails.id)
         .then((response) => {
           if (Array.isArray(response.data)) {
             setHealthData(response.data);
@@ -41,7 +41,7 @@ const Dashboard = () => {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [userDetails]);
 
   const latest = healthData.length ? healthData[healthData.length - 1] : null;
 

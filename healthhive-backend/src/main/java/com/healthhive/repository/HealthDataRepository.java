@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface HealthDataRepository extends JpaRepository<HealthData, Long> {
-    List<HealthData> findByUserId(Long userId);
+    List<HealthData> findByUserIdOrderByDateAsc(Long userId);
 }

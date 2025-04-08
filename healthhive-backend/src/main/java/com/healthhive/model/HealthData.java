@@ -3,6 +3,8 @@ package com.healthhive.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -21,5 +23,6 @@ public class HealthData {
     private double weight;
     private int sleepHours;
     private String mood;
+    private LocalDateTime date;
 }
 
