@@ -78,3 +78,40 @@ export const fetchAppointments = (userId) => {
 
 export const bookAppointment = (appointment) =>
   api.post("/appointments", appointment);
+
+// Volunteer Opportunities
+export const fetchVolunteerOpportunities = () => {
+  return api.get("volunteer");
+};
+
+export const createVolunteerOpportunity = (data) => {
+  return api.post("volunteer", data);
+};
+
+export const joinVolunteerOpportunity = (opportunityId, userId) => {
+  return api.post(`/volunteer/${opportunityId}/join`, null, {
+    params: { userId },
+  });
+};
+
+export const fetchJoinedOpportunityIds = (userId) => {
+  return api.get(`/volunteer/joined/${userId}`);
+};
+
+// Challenges
+export const fetchAllChallenges = () => api.get("/challenges");
+
+export const fetchMyChallenges = (userId) =>
+  api.get(`/challenges/my/${userId}`);
+
+export const createChallenge = (challenge) =>
+  api.post("/challenges", challenge);
+
+export const joinChallenge = (challengeId, userId) =>
+  api.post(`/challenges/${challengeId}/join`, null, { params: { userId } });
+
+export const cancelJoinChallenge = (id, userId) =>
+  api.post(`/challenges/${id}/cancel`, null, { params: { userId } });
+
+export const fetchChallengeProgress = (userId) =>
+  api.get(`/challenges/progress/${userId}`);

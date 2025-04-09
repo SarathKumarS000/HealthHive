@@ -1,0 +1,66 @@
+package com.healthhive.controller;
+
+import com.healthhive.dto.ChallengeProgressDTO;
+import com.healthhive.model.HealthChallenge;
+import com.healthhive.service.HealthChallengeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/challenges")
+@RequiredArgsConstructor
+public class HealthChallengeController {
+
+    private final HealthChallengeService challengeService;
+
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody HealthChallenge challenge) {
+        if (challenge.getTitle() == null || challenge.getTitle().isBlank()) {
+            return ResponseEntity.badRequest().body("Title is required.");
+        }
+        if (challenge.getStartDate() == null || challenge.getEndDate() == null) {
+            return ResponseEntity.badRequest().body("Start and End dates are required.");
+        }
+        if (challenge.getStartDate().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("Start date cannot be in the past.");
+        }
+        if (challenge.getEndDate().isBefore(challenge.getStartDate())) {
+            return ResponseEntity.badRequest().body("End date must be after start date.");
+        }
+
+        return ResponseEntity.ok(challengeService.save(challenge));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<HealthChallenge>> getAll() {
+        return ResponseEntity.ok(challengeService.getAll());
+    }
+
+    @GetMapping("/my/{userId}")
+    public ResponseEntity<List<HealthChallenge>> getUserChallenges(@PathVariable Long userId) {
+        return ResponseEntity.ok(challengeService.getUserChallenges(userId));
+    }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<?> joinChallenge(@PathVariable Long id, @RequestParam Long userId) {
+        challengeService.joinChallenge(id, userId);
+        return ResponseEntity.ok("Joined!");
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancel(@PathVariable Long id, @RequestParam Long userId) {
+        challengeService.cancelJoin(id, userId);
+        return ResponseEntity.ok("Cancelled successfully.");
+    }
+
+    @GetMapping("/progress/{userId}")
+    public ResponseEntity<List<ChallengeProgressDTO>> getProgress(@PathVariable Long userId) {
+        return ResponseEntity.ok(challengeService.getUserChallengeProgress(userId));
+    }
+
+}

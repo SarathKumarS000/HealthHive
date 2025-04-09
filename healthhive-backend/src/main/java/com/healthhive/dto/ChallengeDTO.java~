@@ -1,0 +1,4 @@
+package com.healthhive.dto;
+
+public class ChallengeDTO {
+}

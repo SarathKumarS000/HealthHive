@@ -19,6 +19,7 @@ import Volunteer from "./components/Volunteer";
 import HealthChallenges from "./components/HealthChallenges";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import ChallengeProgress from "./components/ChallengeProgress";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -60,7 +61,7 @@ const App = () => {
   return (
     <Router>
       <Navbar />
-      <Box sx={{ pt: 10 }}>
+      <Box sx={{ pt: 10, pb: 2 }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -75,6 +76,7 @@ const App = () => {
             <Route path="/emergency" element={<EmergencySupport />} />
             <Route path="/volunteer" element={<Volunteer />} />
             <Route path="/challenges" element={<HealthChallenges />} />
+            <Route path="/challenge-progress" element={<ChallengeProgress />} />
           </Route>
           <Route path="*" element={<Dashboard />} />
         </Routes>

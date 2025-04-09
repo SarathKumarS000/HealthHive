@@ -66,7 +66,7 @@ const EmergencySupport = () => {
 
   useEffect(() => {
     getContacts();
-  });
+  }, []);
 
   return (
     <Box sx={{ mt: 4, px: 3 }}>
