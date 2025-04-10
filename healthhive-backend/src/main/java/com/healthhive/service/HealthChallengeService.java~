@@ -10,7 +10,10 @@ import com.healthhive.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -96,14 +99,12 @@ public class HealthChallengeService {
 
             int completed = 0;
             for (User user : challenge.getParticipants()) {
-                int sum = Optional.ofNullable(
-                        healthDataRepository.sumByUserAndGoalTypeBetweenDates(
-                                user.getId(),
-                                challenge.getGoalType(),
-                                challenge.getStartDate(),
-                                challenge.getEndDate()
-                        )
-                ).orElse(0);
+                int sum = healthDataRepository.sumByUserAndGoalTypeBetweenDates(
+                        user.getId(),
+                        challenge.getGoalType(),
+                        challenge.getStartDate(),
+                        challenge.getEndDate()
+                );
 
                 if (sum >= challenge.getGoal()) {
                     completed++;

@@ -40,7 +40,7 @@ public class VolunteerController {
     ) {
         if (token == null) return ResponseEntity.status(401).build();
 
-        String username = jwtUtil.extractUsername(token); // Make sure jwtUtil is injected
+        String username = jwtUtil.extractUsername(token);
         User user = userRepository.findByUsername(username).orElseThrow();
         opportunity.setPostedBy(user);
 

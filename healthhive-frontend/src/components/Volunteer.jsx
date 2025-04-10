@@ -11,6 +11,10 @@ import {
   Box,
   Snackbar,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -33,6 +37,7 @@ const Volunteer = () => {
     date: "",
   });
   const [joinedIds, setJoinedIds] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -42,7 +47,7 @@ const Volunteer = () => {
   const loadOpportunities = async () => {
     try {
       const res = await fetchVolunteerOpportunities();
-      setOpportunities(res.data);
+      setOpportunities(res.data || []);
 
       if (user?.id) {
         const joined = await fetchJoinedOpportunityIds(user.id);
@@ -55,6 +60,7 @@ const Volunteer = () => {
 
   useEffect(() => {
     loadOpportunities();
+    // eslint-disable-next-line
   }, []);
 
   const handleChange = (e) => {
@@ -99,7 +105,6 @@ const Volunteer = () => {
         severity: "success",
       });
     } catch (err) {
-      console.error("Failed to create opportunity", err);
       setSnackbar({
         open: true,
         message: err.response?.data || "Failed to create opportunity",
@@ -134,13 +139,16 @@ const Volunteer = () => {
     }
   };
 
+  const toggleJoinedList = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <Container>
       <Typography variant="h4" align="center" sx={{ mt: 4 }}>
         Volunteer Opportunities
       </Typography>
 
-      {/* Toggle Form */}
       <Box sx={{ mb: 3, textAlign: "center" }}>
         <Button
           startIcon={formOpen ? <CancelIcon /> : <AddCircleOutlineIcon />}
@@ -205,39 +213,71 @@ const Volunteer = () => {
         </Collapse>
       </Box>
 
-      {/* Opportunities List */}
       <Grid container spacing={3}>
-        {opportunities.map((op) => {
-          const isPast = new Date(op.date) < new Date();
-          const isJoined = joinedIds.includes(op.id);
+        {[...opportunities]
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .map((op) => {
+            const isPast = new Date(op.date) < new Date();
+            const isJoined = joinedIds.includes(op.id);
+            const isExpanded = expandedId === op.id;
 
-          return (
-            <Grid item xs={12} sm={6} md={4} key={op.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">{op.title}</Typography>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    {op.description}
-                  </Typography>
-                  <Typography variant="body2">📍 {op.location}</Typography>
-                  <Typography variant="body2">📅 {op.date}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    🧑‍💼 Posted by: {op.postedBy?.username}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ mt: 1 }}
-                    disabled={isJoined || isPast}
-                    onClick={() => handleJoin(op.id)}
-                  >
-                    {isPast ? "Closed" : isJoined ? "Joined" : "Join"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
+            return (
+              <Grid item xs={12} sm={6} md={4} key={op.id}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">{op.title}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {op.description}
+                    </Typography>
+                    <Typography variant="body2">📍 {op.location}</Typography>
+                    <Typography variant="body2">📅 {op.date}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      🧑‍💼 Posted by: {op.postedBy?.username}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      👥 Joined: {op.joinedUsers?.length || 0}
+                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={isJoined || isPast}
+                        onClick={() => handleJoin(op.id)}
+                      >
+                        {isPast ? "Closed" : isJoined ? "Joined" : "Join"}
+                      </Button>
+
+                      {op.joinedUsers?.length > 0 && (
+                        <Button
+                          size="small"
+                          sx={{ ml: 1 }}
+                          onClick={() => toggleJoinedList(op.id)}
+                        >
+                          {isExpanded ? "Hide" : "View"} Members
+                        </Button>
+                      )}
+                    </Box>
+
+                    <Collapse in={isExpanded}>
+                      <List dense sx={{ mt: 1 }}>
+                        {op.joinedUsers.map((user) => (
+                          <React.Fragment key={user.id}>
+                            <ListItem>
+                              <ListItemText
+                                primary={user.username}
+                                secondary={user.email}
+                              />
+                            </ListItem>
+                            <Divider />
+                          </React.Fragment>
+                        ))}
+                      </List>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
       </Grid>
 
       <Snackbar

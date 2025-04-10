@@ -6,51 +6,62 @@ import {
   CardContent,
   Grid,
   Box,
+  Button,
   Avatar,
   Paper,
+  LinearProgress,
 } from "@mui/material";
 import {
   DirectionsWalk as StepsIcon,
   LocalFireDepartment as CaloriesIcon,
   Hotel as SleepIcon,
-  Mood as MoodIcon,
 } from "@mui/icons-material";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
-import { fetchHealthData } from "../services/apiService";
+import { useNavigate } from "react-router-dom";
+import {
+  fetchDailySummaries,
+  fetchChallengeProgress,
+} from "../services/apiService";
 
 const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
-  const [healthData, setHealthData] = useState([]);
-  const [user, setUser] = useState(null);
+  const [dailySummaries, setDailySummaries] = useState([]);
+  const [challengeProgress, setChallengeProgress] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (userDetails?.id) {
-      setUser(userDetails);
-      fetchHealthData(userDetails.id)
-        .then((response) => {
-          if (Array.isArray(response.data)) {
-            setHealthData(response.data);
-          }
-        })
-        .catch((error) => console.error("Error fetching health data", error))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    const loadData = async () => {
+      try {
+        if (userDetails?.id) {
+          const [summaryRes, progressRes] = await Promise.all([
+            fetchDailySummaries(userDetails.id),
+            fetchChallengeProgress(userDetails.id),
+          ]);
+          setDailySummaries(summaryRes.data || []);
+          setChallengeProgress(progressRes.data.reverse() || []);
+        }
+      } catch (err) {
+        console.error("Error loading dashboard data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, [userDetails]);
 
-  const latest = healthData.length ? healthData[healthData.length - 1] : null;
+  const latest = dailySummaries[dailySummaries.length - 1];
 
   const chartData = {
-    labels: healthData.map((entry) => dayjs(entry.date).format("DD/MM")),
+    labels: dailySummaries.map((entry) => dayjs(entry.date).format("DD/MM")),
     datasets: [
       {
         label: "Steps",
-        data: healthData.map((entry) => entry.steps),
+        data: dailySummaries.map((entry) => entry.totalSteps),
         fill: false,
         yAxisID: "steps",
         borderColor: "#1976D2",
@@ -58,7 +69,7 @@ const Dashboard = () => {
       },
       {
         label: "Calories",
-        data: healthData.map((entry) => entry.calories),
+        data: dailySummaries.map((entry) => entry.totalCalories),
         fill: false,
         yAxisID: "calories",
         borderColor: "#FF5722",
@@ -66,7 +77,7 @@ const Dashboard = () => {
       },
       {
         label: "Sleep Hours",
-        data: healthData.map((entry) => entry.sleepHours),
+        data: dailySummaries.map((entry) => entry.totalSleepHours),
         fill: false,
         yAxisID: "sleep",
         borderColor: "#4CAF50",
@@ -83,9 +94,7 @@ const Dashboard = () => {
     },
     stacked: false,
     plugins: {
-      legend: {
-        position: "top",
-      },
+      legend: { position: "top" },
     },
     scales: {
       steps: {
@@ -122,14 +131,17 @@ const Dashboard = () => {
     },
   };
 
-  if (loading)
-    return <Typography sx={{ mt: 4 }}>Loading health data...</Typography>;
-  if (!user)
+  if (loading) {
+    return <Typography sx={{ mt: 4 }}>Loading dashboard...</Typography>;
+  }
+
+  if (!userDetails) {
     return (
       <Typography sx={{ mt: 4 }}>
         Please log in to view your dashboard.
       </Typography>
     );
+  }
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -138,12 +150,12 @@ const Dashboard = () => {
           <Avatar
             sx={{ width: 64, height: 64, bgcolor: "primary.main", mr: 2 }}
           >
-            {user.name?.charAt(0).toUpperCase()}
+            {userDetails.name?.charAt(0).toUpperCase()}
           </Avatar>
           <Box>
-            <Typography variant="h5">{user.username}</Typography>
+            <Typography variant="h5">{userDetails.username}</Typography>
             <Typography variant="body2" color="textSecondary">
-              {user.email}
+              {userDetails.email}
             </Typography>
           </Box>
         </Box>
@@ -152,57 +164,30 @@ const Dashboard = () => {
       {latest ? (
         <>
           <Typography variant="h6" gutterBottom>
-            Last Updated: {dayjs(latest.date).format("DD MMM YYYY HH:mm")}
+            Last Summary: {dayjs(latest.date).format("DD MMM YYYY")}
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
-                <StepsIcon sx={{ fontSize: 40, color: "#1976D2", mr: 2 }} />
-                <CardContent>
-                  <Typography variant="subtitle2">Steps</Typography>
-                  <Typography variant="h5">{latest.steps}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
-                <CaloriesIcon sx={{ fontSize: 40, color: "#FF5722", mr: 2 }} />
-                <CardContent>
-                  <Typography variant="subtitle2">Calories</Typography>
-                  <Typography variant="h5">{latest.calories} kcal</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
-                <SleepIcon sx={{ fontSize: 40, color: "#4CAF50", mr: 2 }} />
-                <CardContent>
-                  <Typography variant="subtitle2">Sleep</Typography>
-                  <Typography variant="h5">{latest.sleepHours} hrs</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
-                <MoodIcon sx={{ fontSize: 40, color: "#FFC107", mr: 2 }} />
-                <CardContent>
-                  <Typography variant="subtitle2">Mood</Typography>
-                  <Typography variant="h5">
-                    {latest.mood
-                      ? latest.mood.charAt(0).toUpperCase() +
-                        latest.mood.slice(1)
-                      : "N/A"}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            <DashboardStat
+              icon={<StepsIcon />}
+              label="Steps"
+              value={latest.totalSteps}
+              color="#1976D2"
+            />
+            <DashboardStat
+              icon={<CaloriesIcon />}
+              label="Calories"
+              value={`${latest.totalCalories} kcal`}
+              color="#FF5722"
+            />
+            <DashboardStat
+              icon={<SleepIcon />}
+              label="Sleep"
+              value={`${latest.totalSleepHours} hrs`}
+              color="#4CAF50"
+            />
           </Grid>
 
-          {/* Chart */}
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" gutterBottom>
               Weekly Trends
@@ -210,7 +195,6 @@ const Dashboard = () => {
             <Line data={chartData} options={chartOptions} />
           </Box>
 
-          {/* Health Tip */}
           <Paper
             sx={{
               mt: 4,
@@ -224,16 +208,90 @@ const Dashboard = () => {
               day and aim for 7-8 hours of sleep!
             </Typography>
           </Paper>
+
+          {challengeProgress.length > 0 && (
+            <Box sx={{ mt: 5 }}>
+              <Typography variant="h6" gutterBottom>
+                🏆 Challenge Progress
+              </Typography>
+              <Grid container spacing={2}>
+                {challengeProgress.slice(0, 2).map((p) => (
+                  <Grid item xs={12} sm={6} key={p.challengeId}>
+                    <Card
+                      sx={{
+                        border:
+                          p.progressPercentage >= 100
+                            ? "2px solid #4caf50"
+                            : "1px solid #ccc",
+                        backgroundColor:
+                          p.progressPercentage >= 100
+                            ? "#e8f5e9"
+                            : "background.paper",
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="subtitle1">{p.title}</Typography>
+                        <Typography variant="body2">
+                          Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
+                        </Typography>
+                        <LinearProgress
+                          variant="determinate"
+                          value={p.progressPercentage}
+                          sx={{ my: 1, height: 8, borderRadius: 4 }}
+                          color={
+                            p.progressPercentage >= 100 ? "success" : "primary"
+                          }
+                        />
+                        <Typography variant="caption">
+                          {p.progressPercentage}% completed
+                        </Typography>
+                        {p.progressPercentage >= 100 && (
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ color: "green", mt: 1 }}
+                          >
+                            🎉 Completed!
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+              {challengeProgress.length > 2 && (
+                <Box textAlign="center" mt={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/challenge-progress")}
+                  >
+                    View All Progress
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
         </>
       ) : (
         <Box textAlign="center" mt={5}>
           <Typography variant="h6" color="textSecondary">
-            No health data available. Log your first entry!
+            No health summaries available. Start logging your daily data!
           </Typography>
         </Box>
       )}
     </Container>
   );
 };
+
+const DashboardStat = ({ icon, label, value, color }) => (
+  <Grid item xs={12} sm={6} md={4}>
+    <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
+      <Box sx={{ mr: 2, color }}>{icon}</Box>
+      <CardContent>
+        <Typography variant="subtitle2">{label}</Typography>
+        <Typography variant="h5">{value}</Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+);
 
 export default Dashboard;

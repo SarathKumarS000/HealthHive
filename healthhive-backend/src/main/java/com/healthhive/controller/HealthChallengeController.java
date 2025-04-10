@@ -1,6 +1,7 @@
 package com.healthhive.controller;
 
 import com.healthhive.dto.ChallengeProgressDTO;
+import com.healthhive.dto.ChallengeStatsDTO;
 import com.healthhive.model.HealthChallenge;
 import com.healthhive.service.HealthChallengeService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/challenges")
@@ -63,4 +65,8 @@ public class HealthChallengeController {
         return ResponseEntity.ok(challengeService.getUserChallengeProgress(userId));
     }
 
+    @GetMapping("/stats/all")
+    public ResponseEntity<Map<Long, ChallengeStatsDTO>> getAllChallengeStats() {
+        return ResponseEntity.ok(challengeService.getStatsForAllChallenges());
+    }
 }

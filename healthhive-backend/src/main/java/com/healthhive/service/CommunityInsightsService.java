@@ -18,7 +18,7 @@ public class CommunityInsightsService {
         List<HealthData> allData = healthDataRepository.findAll();
 
         double avgSteps = allData.stream().mapToInt(HealthData::getSteps).average().orElse(0);
-        double avgSleep = allData.stream().mapToInt(HealthData::getSleepHours).average().orElse(0);
+        double avgSleep = allData.stream().mapToDouble(HealthData::getSleepHours).average().orElse(0);
         double avgCalories = allData.stream()
                 .mapToDouble(h -> h.getCalories() == 0 ? 0.0 : h.getCalories()) // Avoid division by zero
                 .average()

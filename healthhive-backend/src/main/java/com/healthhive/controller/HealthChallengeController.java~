@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/challenges")
@@ -25,7 +27,7 @@ public class HealthChallengeController {
         if (challenge.getStartDate() == null || challenge.getEndDate() == null) {
             return ResponseEntity.badRequest().body("Start and End dates are required.");
         }
-        if (challenge.getStartDate().isBefore(LocalDate.now())) {
+        if (challenge.getStartDate().isBefore(LocalDateTime.now())) {
             return ResponseEntity.badRequest().body("Start date cannot be in the past.");
         }
         if (challenge.getEndDate().isBefore(challenge.getStartDate())) {
@@ -62,4 +64,8 @@ public class HealthChallengeController {
         return ResponseEntity.ok(challengeService.getUserChallengeProgress(userId));
     }
 
+    @GetMapping("/stats/all")
+    public ResponseEntity<Map<Long, ChallengeStatsDTO>> getAllChallengeStats() {
+        return ResponseEntity.ok(challengeService.getStatsForAllChallenges());
+    }
 }

@@ -10,6 +10,6 @@ public class HealthDataDTO {
     private int steps;
     private int calories;
     private double weight;
-    private int sleepHours;
+    private double sleepHours;
     private String mood;
 }

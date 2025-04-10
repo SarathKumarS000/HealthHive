@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -16,6 +15,8 @@ import {
   Tab,
   MenuItem,
   FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import { FocusTrap } from "@mui/base";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,13 +27,13 @@ import {
   joinChallenge,
   cancelJoinChallenge,
   fetchMyChallenges,
+  fetchAllChallengeStats,
 } from "../services/apiService";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import ChallengeProgress from "./ChallengeProgress";
 
 const HealthChallenges = () => {
-  const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
   const [challenges, setChallenges] = useState([]);
   const [myChallenges, setMyChallenges] = useState([]);
@@ -52,14 +53,18 @@ const HealthChallenges = () => {
     severity: "info",
   });
   const [loading, setLoading] = useState(false);
+  const today = dayjs().startOf("day");
   const tomorrow = dayjs().add(1, "day").format("YYYY-MM-DD");
   const [showProgress, setShowProgress] = useState(false);
+  const [stats, setStats] = useState({});
+  const [goalFilter, setGoalFilter] = useState("");
 
   useEffect(() => {
     if (user?.id) {
       loadAll();
       loadMine();
     }
+    // eslint-disable-next-line
   }, [user]);
 
   const loadAll = async () => {
@@ -78,6 +83,7 @@ const HealthChallenges = () => {
   const loadMine = async () => {
     try {
       const res = await fetchMyChallenges(user.id);
+      await fetchAllChallengeStats().then((res) => setStats(res.data));
       setMyChallenges(res.data.map((c) => c.id));
     } catch {
       setSnackbar({
@@ -92,18 +98,10 @@ const HealthChallenges = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const validateDates = () => {
-    const today = dayjs().startOf("day");
     const start = dayjs(form.startDate);
     const end = dayjs(form.endDate);
-
-    if (start.isBefore(today)) {
-      return "Start date cannot be in the past.";
-    }
-
-    if (end.isBefore(start)) {
-      return "End date must be after start date.";
-    }
-
+    if (start.isBefore(today)) return "Start date cannot be in the past.";
+    if (end.isBefore(start)) return "End date must be after start date.";
     return null;
   };
 
@@ -121,7 +119,6 @@ const HealthChallenges = () => {
         severity: "warning",
       });
     }
-
     const dateError = validateDates();
     if (dateError) {
       return setSnackbar({
@@ -184,21 +181,28 @@ const HealthChallenges = () => {
     try {
       await cancelJoinChallenge(id, user.id);
       await loadMine();
-      setSnackbar({
-        open: true,
-        message: "Canceled join.",
-        severity: "info",
-      });
+      setSnackbar({ open: true, message: "Canceled join.", severity: "info" });
     } catch {
-      setSnackbar({
-        open: true,
-        message: "Cancel failed.",
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: "Cancel failed.", severity: "error" });
     } finally {
       setLoading(false);
     }
   };
+
+  const sortedChallenges = (
+    tab === 0
+      ? challenges
+      : challenges.filter((c) => myChallenges.includes(c.id))
+  )
+    .filter((c) => !goalFilter || c.goalType === goalFilter)
+    .sort((a, b) => {
+      const isAEnded = dayjs(a.endDate).isBefore(dayjs());
+      const isBEnded = dayjs(b.endDate).isBefore(dayjs());
+      if (isAEnded === isBEnded) {
+        return new Date(a.startDate) - new Date(b.startDate);
+      }
+      return isAEnded ? 1 : -1;
+    });
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -250,6 +254,19 @@ const HealthChallenges = () => {
               📊 View Overall Progress
             </Button>
           )}
+
+          <FormControl sx={{ minWidth: 180 }}>
+            <InputLabel>Filter by Goal Type</InputLabel>
+            <Select
+              value={goalFilter}
+              onChange={(e) => setGoalFilter(e.target.value)}
+              label="Filter by Goal Type"
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="steps">Steps</MenuItem>
+              <MenuItem value="calories">Calories</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         <Collapse in={formOpen}>
@@ -302,21 +319,6 @@ const HealthChallenges = () => {
               fullWidth
               required
             />
-            <TextField
-              label="Goal"
-              name="goal"
-              type="number"
-              value={form.goal}
-              onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (value >= 0 || e.target.value === "") {
-                  setForm({ ...form, goal: e.target.value });
-                }
-              }}
-              inputProps={{ min: 0 }}
-              fullWidth
-              required
-            />
             <FormControl fullWidth required>
               <TextField
                 select
@@ -331,7 +333,20 @@ const HealthChallenges = () => {
                 <MenuItem value="calories">Calories</MenuItem>
               </TextField>
             </FormControl>
-
+            <TextField
+              label="Goal"
+              name="goal"
+              type="number"
+              value={form.goal}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (value >= 0 || e.target.value === "")
+                  setForm({ ...form, goal: e.target.value });
+              }}
+              inputProps={{ min: 0 }}
+              fullWidth
+              required
+            />
             <Button variant="contained" onClick={handleCreate}>
               Submit
             </Button>
@@ -339,47 +354,75 @@ const HealthChallenges = () => {
         </Collapse>
 
         <Grid container spacing={2}>
-          {(tab === 0
-            ? challenges
-            : challenges.filter((c) => myChallenges.includes(c.id))
-          ).map((c) => (
-            <Grid item xs={12} sm={6} md={4} key={c.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">{c.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {c.description}
-                  </Typography>
-                  <Typography variant="body2">
-                    📅 {dayjs(c.startDate).format("YYYY-MM-DD")} to{" "}
-                    {dayjs(c.endDate).format("YYYY-MM-DD")}
-                  </Typography>
-                  <Box mt={1}>
-                    {myChallenges.includes(c.id) ? (
-                      <>
+          {sortedChallenges.map((c) => {
+            const isEnded = dayjs(c.endDate).isBefore(dayjs());
+            return (
+              <Grid item xs={12} sm={6} md={4} key={c.id}>
+                <Card
+                  sx={{
+                    opacity: isEnded ? 0.6 : 1,
+                    pointerEvents: isEnded ? "none" : "auto",
+                    position: "relative",
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {c.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {c.description || "No description provided."}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      📅 {dayjs(c.startDate).format("MMM D, YYYY")} —{" "}
+                      {dayjs(c.endDate).format("MMM D, YYYY")}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1 }}
+                    >
+                      🎯 <strong>Goal:</strong> {c.goal} {c.goalType}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      👥 Participants: {stats[c.id]?.totalParticipants ?? "—"} |
+                      ✅ Completed: {stats[c.id]?.completedParticipants ?? "—"}
+                    </Typography>
+
+                    {isEnded && (
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 1, display: "block", fontWeight: 600 }}
+                      >
+                        🚫 Challenge Ended
+                      </Typography>
+                    )}
+
+                    <Box mt={2}>
+                      {myChallenges.includes(c.id) ? (
                         <Button
                           variant="outlined"
                           onClick={() => handleCancel(c.id)}
-                          disabled={loading}
+                          disabled={loading || isEnded}
                           sx={{ mr: 1 }}
                         >
                           Cancel
                         </Button>
-                      </>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        onClick={() => handleJoin(c.id)}
-                        disabled={loading}
-                      >
-                        Join
-                      </Button>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                      ) : (
+                        <Button
+                          variant="contained"
+                          onClick={() => handleJoin(c.id)}
+                          disabled={loading || isEnded}
+                        >
+                          Join
+                        </Button>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       </Box>
 

@@ -30,6 +30,14 @@ export const logHealthData = (data) => {
   return api.post("/health/log", data);
 };
 
+export const updateHealthLog = (logId, data) =>
+  api.put(`/health/${logId}`, data);
+
+export const deleteHealthLog = (logId) => api.delete(`/health/${logId}`);
+
+export const fetchDailySummaries = (userId) =>
+  api.get(`/health/summary/${userId}`);
+
 // Community Insights
 export const fetchInsights = () => {
   return api.get("/insights");
@@ -115,3 +123,7 @@ export const cancelJoinChallenge = (id, userId) =>
 
 export const fetchChallengeProgress = (userId) =>
   api.get(`/challenges/progress/${userId}`);
+
+export const fetchAllChallengeStats = () => {
+  return api.get("/challenges/stats/all");
+};

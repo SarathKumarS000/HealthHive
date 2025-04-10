@@ -13,9 +13,6 @@ public interface HealthChallengeRepository extends JpaRepository<HealthChallenge
 
     @Query("SELECT c FROM HealthChallenge c JOIN c.participants p WHERE p.id = :userId")
     List<HealthChallenge> findByUserId(Long userId);
-
-    @Query("SELECT c FROM HealthChallenge c LEFT JOIN FETCH c.participants ORDER BY c.startDate ASC")
-    List<HealthChallenge> findAllWithParticipantsSorted();
 }
 
 
