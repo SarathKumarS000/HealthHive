@@ -1,76 +1,99 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, Card, CardContent, Grid } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Box,
+  Button,
+} from "@mui/material";
 import { Pie } from "react-chartjs-2";
-import { fetchInsights } from "../services/apiService";
-import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
-import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
-import HotelIcon from "@mui/icons-material/Hotel";
-import MoodIcon from "@mui/icons-material/Mood";
+import { useNavigate } from "react-router-dom";
+import {
+  DirectionsWalk as StepsIcon,
+  LocalFireDepartment as CaloriesIcon,
+  Hotel as SleepIcon,
+  Mood as MoodIcon,
+} from "@mui/icons-material";
 import { moods, moodColors } from "../utils/commons";
+import { fetchInsights } from "../services/apiService";
 
 const CommunityInsights = () => {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchInsights()
-      .then((response) => {
-        setInsights(response.data);
+      .then((res) => {
+        setInsights(res.data);
         setLoading(false);
       })
-      .catch((error) => {
-        console.error("Error fetching community insights", error);
+      .catch((err) => {
+        console.error("Error fetching community insights", err);
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <Typography>Loading insights...</Typography>;
-  if (!insights) return <Typography>Error loading insights.</Typography>;
+  if (loading)
+    return <Typography sx={{ mt: 4 }}>Loading insights...</Typography>;
+  if (!insights)
+    return <Typography sx={{ mt: 4 }}>Error loading insights.</Typography>;
 
   const moodLabels = moods.map((m) => m.label);
   const moodData = moods.map((m) => insights.mood_counts[m.key] || 0);
   const moodColorsArray = moods.map((m) => moodColors[m.key]);
-
   const mostCommonMood = moods.find((m) => m.key === insights.most_common_mood);
 
   return (
-    <Container>
-      <Typography variant="h4" sx={{ mt: 3, mb: 2, textAlign: "center" }}>
-        Community Health Insights
+    <Container sx={{ mt: 4, mb: 6 }}>
+      <Typography variant="h4" align="center" gutterBottom>
+        🌍 Community Health Insights
+      </Typography>
+      <Typography
+        variant="subtitle1"
+        align="center"
+        color="textSecondary"
+        sx={{ mb: 4 }}
+      >
+        Aggregated health data from all users across the platform.
       </Typography>
 
-      {/* Metrics Cards */}
       <Grid container spacing={3} justifyContent="center">
         <Grid item xs={12} sm={6} md={3}>
           <Card
+            elevation={3}
             sx={{
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
               p: 2,
+              textAlign: "center",
+              borderRadius: 3,
+              transition: "transform 0.3s ease",
+              "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
             }}
           >
-            <HotelIcon sx={{ fontSize: 40, color: "#1976d2" }} />
+            <SleepIcon sx={{ fontSize: 40, color: "#1976d2" }} />
             <CardContent>
-              <Typography variant="h6">Avg Sleep Hours</Typography>
+              <Typography variant="h6">Avg Sleep</Typography>
               <Typography variant="h4">
                 {insights.average_sleep.toFixed(1)} hrs
               </Typography>
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={6} md={3}>
           <Card
+            elevation={3}
             sx={{
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
               p: 2,
+              textAlign: "center",
+              borderRadius: 3,
+              transition: "transform 0.3s ease",
+              "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
             }}
           >
-            <DirectionsWalkIcon sx={{ fontSize: 40, color: "#388e3c" }} />
+            <StepsIcon sx={{ fontSize: 40, color: "#388e3c" }} />
             <CardContent>
               <Typography variant="h6">Avg Steps</Typography>
               <Typography variant="h4">
@@ -79,40 +102,44 @@ const CommunityInsights = () => {
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={6} md={3}>
           <Card
+            elevation={3}
             sx={{
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
               p: 2,
+              textAlign: "center",
+              borderRadius: 3,
+              transition: "transform 0.3s ease",
+              "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
             }}
           >
-            <LocalFireDepartmentIcon sx={{ fontSize: 40, color: "#d32f2f" }} />
+            <CaloriesIcon sx={{ fontSize: 40, color: "#d32f2f" }} />
             <CardContent>
-              <Typography variant="h6">Avg Calories Burned</Typography>
+              <Typography variant="h6">Avg Calories</Typography>
               <Typography variant="h4">
                 {insights.average_calories.toFixed(0)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={6} md={3}>
           <Card
+            elevation={3}
             sx={{
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
               p: 2,
-              bgcolor: moodColors[insights.most_common_mood],
-              color: "white",
+              textAlign: "center",
+              borderRadius: 3,
+              color: "#fff",
+              backgroundColor: moodColors[insights.most_common_mood] || "#888",
+              transition: "transform 0.3s ease",
+              "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
             }}
           >
             <MoodIcon sx={{ fontSize: 40 }} />
             <CardContent>
-              <Typography variant="h6">Most Common Mood</Typography>
+              <Typography variant="h6">Top Mood</Typography>
               <Typography variant="h4">
                 {mostCommonMood?.label || "Unknown ❔"}
               </Typography>
@@ -121,40 +148,72 @@ const CommunityInsights = () => {
         </Grid>
       </Grid>
 
-      {/* Mood Distribution Pie Chart */}
-      <Typography variant="h5" sx={{ mt: 4 }}>
-        Mood Distribution
-      </Typography>
-      <div style={{ maxWidth: "500px", height: "400px", margin: "0 auto" }}>
-        <Pie
-          data={{
-            labels: moodLabels,
-            datasets: [
-              {
-                label: "Number of People",
-                data: moodData,
-                backgroundColor: moodColorsArray,
+      <Card
+        elevation={4}
+        sx={{
+          maxWidth: 600,
+          mx: "auto",
+          mt: 6,
+          p: 3,
+          borderRadius: 3,
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h6" gutterBottom>
+          Mood Distribution Across Users
+        </Typography>
+        <Box sx={{ height: 350 }}>
+          <Pie
+            data={{
+              labels: moodLabels,
+              datasets: [
+                {
+                  label: "People",
+                  data: moodData,
+                  backgroundColor: moodColorsArray,
+                },
+              ],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: { boxWidth: 16 },
+                },
               },
-            ],
+            }}
+          />
+        </Box>
+      </Card>
+
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={() => navigate("/my-insights")}
+          sx={{
+            px: 4,
+            py: 1.5,
+            borderRadius: 3,
+            fontWeight: 600,
+            textTransform: "none",
           }}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: "right",
-              },
-            },
-            interaction: {
-              mode: "nearest",
-              intersect: false,
-            },
-            animation: {
-              duration: 0,
-            },
-          }}
-        />
-      </div>
+        >
+          📈 Compare Your Insights
+        </Button>
+
+        <Typography
+          variant="caption"
+          display="block"
+          color="text.secondary"
+          sx={{ mt: 2 }}
+        >
+          Explore how your personal trends stack up against the community.
+        </Typography>
+      </Box>
     </Container>
   );
 };

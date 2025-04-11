@@ -25,6 +25,7 @@ import {
   fetchDailySummaries,
   fetchChallengeProgress,
 } from "../services/apiService";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
@@ -56,29 +57,34 @@ const Dashboard = () => {
 
   const latest = dailySummaries[dailySummaries.length - 1];
 
+  dayjs.extend(isSameOrAfter);
+
+  const recentSummaries = dailySummaries
+    .filter((entry) =>
+      dayjs(entry.date).isSameOrAfter(dayjs().subtract(6, "day"))
+    )
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
   const chartData = {
-    labels: dailySummaries.map((entry) => dayjs(entry.date).format("DD/MM")),
+    labels: recentSummaries.map((entry) => dayjs(entry.date).format("DD/MM")),
     datasets: [
       {
         label: "Steps",
-        data: dailySummaries.map((entry) => entry.totalSteps),
-        fill: false,
+        data: recentSummaries.map((entry) => entry.totalSteps),
         yAxisID: "steps",
         borderColor: "#1976D2",
         tension: 0.2,
       },
       {
         label: "Calories",
-        data: dailySummaries.map((entry) => entry.totalCalories),
-        fill: false,
+        data: recentSummaries.map((entry) => entry.totalCalories),
         yAxisID: "calories",
         borderColor: "#FF5722",
         tension: 0.2,
       },
       {
         label: "Sleep Hours",
-        data: dailySummaries.map((entry) => entry.totalSleepHours),
-        fill: false,
+        data: recentSummaries.map((entry) => entry.totalSleepHours),
         yAxisID: "sleep",
         borderColor: "#4CAF50",
         tension: 0.2,
@@ -190,7 +196,7 @@ const Dashboard = () => {
 
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" gutterBottom>
-              Weekly Trends
+              Last 7 Days Trend
             </Typography>
             <Line data={chartData} options={chartOptions} />
           </Box>
@@ -209,56 +215,45 @@ const Dashboard = () => {
             </Typography>
           </Paper>
 
-          {challengeProgress.length > 0 && (
+          {challengeProgress.some((p) => p.progressPercentage < 100) && (
             <Box sx={{ mt: 5 }}>
               <Typography variant="h6" gutterBottom>
-                🏆 Challenge Progress
+                🏆 Ongoing Challenges
               </Typography>
               <Grid container spacing={2}>
-                {challengeProgress.slice(0, 2).map((p) => (
-                  <Grid item xs={12} sm={6} key={p.challengeId}>
-                    <Card
-                      sx={{
-                        border:
-                          p.progressPercentage >= 100
-                            ? "2px solid #4caf50"
-                            : "1px solid #ccc",
-                        backgroundColor:
-                          p.progressPercentage >= 100
-                            ? "#e8f5e9"
-                            : "background.paper",
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="subtitle1">{p.title}</Typography>
-                        <Typography variant="body2">
-                          Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
-                        </Typography>
-                        <LinearProgress
-                          variant="determinate"
-                          value={p.progressPercentage}
-                          sx={{ my: 1, height: 8, borderRadius: 4 }}
-                          color={
-                            p.progressPercentage >= 100 ? "success" : "primary"
-                          }
-                        />
-                        <Typography variant="caption">
-                          {p.progressPercentage}% completed
-                        </Typography>
-                        {p.progressPercentage >= 100 && (
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ color: "green", mt: 1 }}
-                          >
-                            🎉 Completed!
+                {challengeProgress
+                  .filter((p) => p.progressPercentage < 100)
+                  .slice(0, 2)
+                  .map((p) => (
+                    <Grid item xs={12} sm={6} key={p.challengeId}>
+                      <Card
+                        sx={{
+                          border: "1px solid #ccc",
+                          backgroundColor: "background.paper",
+                        }}
+                      >
+                        <CardContent>
+                          <Typography variant="subtitle1">{p.title}</Typography>
+                          <Typography variant="body2">
+                            Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
                           </Typography>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
+                          <LinearProgress
+                            variant="determinate"
+                            value={p.progressPercentage}
+                            sx={{ my: 1, height: 8, borderRadius: 4 }}
+                            color="primary"
+                          />
+                          <Typography variant="caption">
+                            {p.progressPercentage}% completed
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
               </Grid>
-              {challengeProgress.length > 2 && (
+
+              {challengeProgress.filter((p) => p.progressPercentage < 100)
+                .length > 2 && (
                 <Box textAlign="center" mt={2}>
                   <Button
                     variant="outlined"

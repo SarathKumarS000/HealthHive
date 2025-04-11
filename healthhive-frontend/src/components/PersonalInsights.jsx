@@ -21,6 +21,7 @@ import { moods, moodColors } from "../utils/commons";
 import dayjs from "dayjs";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import "chartjs-plugin-trendline";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 const PersonalInsights = () => {
   const user = useSelector((state) => state.auth.user);
@@ -31,6 +32,8 @@ const PersonalInsights = () => {
     disableHysteresis: true,
     threshold: 100,
   });
+
+  dayjs.extend(isSameOrAfter);
 
   useEffect(() => {
     if (user?.id) {
@@ -46,10 +49,13 @@ const PersonalInsights = () => {
   const moodData = moods.map((m) => data.moodCounts[m.key] || 0);
   const moodColorsArray = moods.map((m) => moodColors[m.key]);
 
-  const filteredData =
-    range === "week"
-      ? data.dailySummaries.slice(-7)
-      : data.dailySummaries.slice(-30);
+  const now = dayjs();
+  const cutoffDate =
+    range === "week" ? now.subtract(6, "day") : now.subtract(29, "day");
+
+  const filteredData = data.dailySummaries.filter((d) =>
+    dayjs(d.date).isSameOrAfter(cutoffDate, "day")
+  );
 
   const bestDayIndex = filteredData.findIndex(
     (d) => d.date === data.bestDay?.date
@@ -100,7 +106,6 @@ const PersonalInsights = () => {
         📊 Personal Health Insights
       </Typography>
 
-      {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card>
@@ -154,7 +159,6 @@ const PersonalInsights = () => {
         </Grid>
       </Grid>
 
-      {/* Mood Distribution Pie */}
       <Card
         elevation={3}
         sx={{
@@ -213,7 +217,6 @@ const PersonalInsights = () => {
         </Card>
       )}
 
-      {/* Toggle Buttons */}
       <Box
         display="flex"
         justifyContent="center"
@@ -252,7 +255,6 @@ const PersonalInsights = () => {
         ))}
       </Box>
 
-      {/* Line Chart */}
       <Card
         elevation={4}
         sx={{
