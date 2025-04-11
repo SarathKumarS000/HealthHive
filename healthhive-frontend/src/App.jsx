@@ -9,6 +9,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Dashboard from "./components/Dashboard";
 import CommunityInsights from "./components/CommunityInsights";
+import PersonalInsights from "./components/PersonalInsights";
 import HealthLog from "./components/HealthLog";
 import HealthResources from "./components/HealthResources";
 import BookAppointment from "./components/BookAppointment";
@@ -68,6 +69,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/insights" element={<CommunityInsights />} />
+            <Route path="/my-insights" element={<PersonalInsights />} />
             <Route path="/health-log" element={<HealthLog />} />
             <Route path="/resources" element={<HealthResources />} />
             <Route path="/book-appointment" element={<BookAppointment />} />

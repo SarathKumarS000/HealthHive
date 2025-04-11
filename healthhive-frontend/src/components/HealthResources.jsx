@@ -45,6 +45,7 @@ const HealthResources = () => {
 
   useEffect(() => {
     fetchAllResources();
+    // eslint-disable-next-line
   }, [category]);
 
   const fetchAllResources = () => {

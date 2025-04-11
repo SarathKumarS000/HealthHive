@@ -38,9 +38,13 @@ export const deleteHealthLog = (logId) => api.delete(`/health/${logId}`);
 export const fetchDailySummaries = (userId) =>
   api.get(`/health/summary/${userId}`);
 
-// Community Insights
+// Insights
 export const fetchInsights = () => {
   return api.get("/insights");
+};
+
+export const fetchPersonalInsights = (userId) => {
+  return api.get(`/insights/personal/${userId}`);
 };
 
 // Health Resources

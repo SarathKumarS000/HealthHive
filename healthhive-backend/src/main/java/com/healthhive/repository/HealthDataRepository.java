@@ -14,6 +14,8 @@ import java.util.List;
 public interface HealthDataRepository extends JpaRepository<HealthData, Long> {
     List<HealthData> findByUserIdOrderByDateDesc(Long userId);
 
+    List<HealthData> findByUserIdOrderByDateAsc(Long userId);
+
     @Query("SELECT SUM(h.steps) FROM HealthData h WHERE h.user.id = :userId AND h.date BETWEEN :start AND :end")
     Integer sumStepsBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
@@ -57,4 +59,11 @@ public interface HealthDataRepository extends JpaRepository<HealthData, Long> {
     WHERE h.user.id = :userId AND FUNCTION('DATE', h.date) = :date
     """)
     List<Object[]> findDailyTotalRaw(@Param("userId") Long userId, @Param("date") LocalDate date);
+
+    @Query("""
+    SELECT SUM(h.steps), SUM(h.calories), SUM(h.sleepHours)
+    FROM HealthData h
+    WHERE h.user.id = :userId AND FUNCTION('DATE', h.date) = :date AND h.id <> :logId
+    """)
+    List<Object[]> findDailyTotalExcludingLog(@Param("userId") Long userId, @Param("date") LocalDate date, @Param("logId") Long logId);
 }

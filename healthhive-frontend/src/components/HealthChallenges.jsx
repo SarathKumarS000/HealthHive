@@ -361,7 +361,7 @@ const HealthChallenges = () => {
                 <Card
                   sx={{
                     opacity: isEnded ? 0.6 : 1,
-                    pointerEvents: isEnded ? "none" : "auto",
+                    pointerEvents: isEnded || showProgress ? "none" : "auto",
                     position: "relative",
                   }}
                 >

@@ -28,13 +28,12 @@ public class AuthController {
         // Create a secure HttpOnly cookie with the token
         Cookie jwtCookie = new Cookie("jwt", authResponse.getToken());
         jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true); // Use true in production (requires HTTPS)
+        jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(24 * 60 * 60); // 1 day
+        jwtCookie.setMaxAge(24 * 60 * 60);
 
         response.addCookie(jwtCookie);
 
-        // Optionally, avoid sending the token in body
         return ResponseEntity.ok(authResponse.getUser());
     }
 
@@ -44,7 +43,7 @@ public class AuthController {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(0); // Expire immediately
+        jwtCookie.setMaxAge(0);
         response.addCookie(jwtCookie);
 
         return ResponseEntity.ok("Logged out successfully.");
