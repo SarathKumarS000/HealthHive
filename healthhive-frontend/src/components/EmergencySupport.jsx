@@ -66,6 +66,7 @@ const EmergencySupport = () => {
 
   useEffect(() => {
     getContacts();
+    // eslint-disable-next-line
   }, []);
 
   return (

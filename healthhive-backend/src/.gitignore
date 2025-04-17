@@ -1,0 +1,5 @@
+# Ignore Spring Boot application configuration
+src/main/resources/application.properties
+
+# Ignore all XML files
+*.xml
