@@ -80,7 +80,9 @@ public class HealthChallengeService {
                     challenge.getGoal(),
                     achieved,
                     challenge.getGoalType(),
-                    Math.min(percentage, 100)
+                    Math.min(percentage, 100),
+                    challenge.getStartDate(),
+                    challenge.getEndDate()
             ));
         }
         return dtos;

@@ -131,3 +131,17 @@ export const fetchChallengeProgress = (userId) =>
 export const fetchAllChallengeStats = () => {
   return api.get("/challenges/stats/all");
 };
+
+// Notifications
+export const fetchNotifications = async () => {
+  const res = await api.get("notifications");
+  return res.data;
+};
+
+export const markNotificationAsRead = async (id) => {
+  await api.put(`notifications/${id}/read`);
+};
+
+export const markAllNotificationsRead = async () => {
+  await api.put("notifications/mark-all-read");
+};

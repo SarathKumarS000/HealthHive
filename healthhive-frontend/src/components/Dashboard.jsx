@@ -58,11 +58,11 @@ const Dashboard = () => {
   const latest = dailySummaries[dailySummaries.length - 1];
 
   dayjs.extend(isSameOrAfter);
+  const today = dayjs();
+  const sevenDaysAgo = today.subtract(6, "day");
 
   const recentSummaries = dailySummaries
-    .filter((entry) =>
-      dayjs(entry.date).isSameOrAfter(dayjs().subtract(6, "day"))
-    )
+    .filter((entry) => dayjs(entry.date).isSameOrAfter(sevenDaysAgo, "day"))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const chartData = {
@@ -215,46 +215,77 @@ const Dashboard = () => {
             </Typography>
           </Paper>
 
-          {challengeProgress.some((p) => p.progressPercentage < 100) && (
-            <Box sx={{ mt: 5 }}>
-              <Typography variant="h6" gutterBottom>
-                🏆 Ongoing Challenges
-              </Typography>
-              <Grid container spacing={2}>
-                {challengeProgress
-                  .filter((p) => p.progressPercentage < 100)
-                  .slice(0, 2)
-                  .map((p) => (
-                    <Grid item xs={12} sm={6} key={p.challengeId}>
-                      <Card
-                        sx={{
-                          border: "1px solid #ccc",
-                          backgroundColor: "background.paper",
-                        }}
-                      >
-                        <CardContent>
-                          <Typography variant="subtitle1">{p.title}</Typography>
-                          <Typography variant="body2">
-                            Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={p.progressPercentage}
-                            sx={{ my: 1, height: 8, borderRadius: 4 }}
-                            color="primary"
-                          />
-                          <Typography variant="caption">
-                            {p.progressPercentage}% completed
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-              </Grid>
+          {(() => {
+            const ongoingChallenges = challengeProgress.filter(
+              (p) =>
+                p.progressPercentage < 100 &&
+                dayjs().isBefore(dayjs(p.endDate), "day")
+            );
 
-              {challengeProgress.filter((p) => p.progressPercentage < 100)
-                .length > 2 && (
-                <Box textAlign="center" mt={2}>
+            return (
+              <Box sx={{ mt: 5 }}>
+                <Typography variant="h6" gutterBottom>
+                  🏃‍♂️ Ongoing Challenges
+                </Typography>
+
+                {ongoingChallenges.length > 0 ? (
+                  <Grid container spacing={2}>
+                    {ongoingChallenges.slice(0, 2).map((p) => (
+                      <Grid item xs={12} sm={6} key={p.challengeId}>
+                        <Card
+                          sx={{
+                            border: "1px solid #ccc",
+                            backgroundColor: "#f5faff",
+                            transition: "transform 0.2s",
+                            "&:hover": { transform: "scale(1.02)" },
+                          }}
+                        >
+                          <CardContent>
+                            <Typography variant="subtitle1" fontWeight="bold">
+                              {p.title}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {dayjs(p.startDate).format("DD MMM YYYY")} –{" "}
+                              {dayjs(p.endDate).format("DD MMM YYYY")}
+                            </Typography>
+                            <Typography variant="body2" mt={0.5}>
+                              Goal: {p.goal} {p.goalType} | Achieved:{" "}
+                              {p.achieved}
+                            </Typography>
+                            <LinearProgress
+                              variant="determinate"
+                              value={p.progressPercentage}
+                              sx={{ my: 1, height: 8, borderRadius: 4 }}
+                              color="primary"
+                            />
+                            <Typography variant="caption">
+                              {p.progressPercentage}% completed
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              mt={1}
+                              color="text.secondary"
+                            >
+                              ⏳ Ends in {dayjs(p.endDate).diff(dayjs(), "day")}{" "}
+                              days
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 2 }}
+                    color="text.secondary"
+                  >
+                    No active challenges right now. Join one to get started!
+                  </Typography>
+                )}
+
+                <Box textAlign="center" mt={3}>
                   <Button
                     variant="outlined"
                     onClick={() => navigate("/challenge-progress")}
@@ -262,9 +293,9 @@ const Dashboard = () => {
                     View All Progress
                   </Button>
                 </Box>
-              )}
-            </Box>
-          )}
+              </Box>
+            );
+          })()}
         </>
       ) : (
         <Box textAlign="center" mt={5}>

@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { useSelector } from "react-redux";
 import { fetchChallengeProgress } from "../services/apiService";
+import dayjs from "dayjs";
 
 const ChallengeProgress = () => {
   const user = useSelector((state) => state.auth.user);
@@ -26,26 +27,44 @@ const ChallengeProgress = () => {
     }
   }, [user]);
 
-  const inProgress = progressList.filter((p) => p.progressPercentage < 100);
-  const completed = progressList.filter((p) => p.progressPercentage >= 100);
+  const today = dayjs();
 
-  const renderCard = (p) => (
+  const inProgress = progressList.filter(
+    (p) => p.progressPercentage < 100 && dayjs(p.endDate).isAfter(today, "day")
+  );
+  const completed = progressList.filter((p) => p.progressPercentage >= 100);
+  const missed = progressList.filter(
+    (p) => p.progressPercentage < 100 && dayjs(p.endDate).isBefore(today, "day")
+  );
+
+  const tabs = ["⏳ In Progress", "✅ Completed", "❌ Missed"];
+  const categorized = [inProgress, completed, missed];
+
+  const renderCard = (p, isMissed = false) => (
     <Grid item xs={12} key={p.challengeId}>
       <Card
         sx={{
-          border:
+          border: isMissed
+            ? "1px solid #f44336"
+            : p.progressPercentage >= 100
+            ? "2px solid #4caf50"
+            : "1px solid #ccc",
+          bgcolor:
             p.progressPercentage >= 100
-              ? "2px solid #4caf50"
-              : "1px solid #ccc",
-          backgroundColor:
-            p.progressPercentage >= 100 ? "#e8f5e9" : "background.paper",
+              ? "#e8f5e9"
+              : isMissed
+              ? "#ffebee"
+              : "background.paper",
         }}
       >
         <CardContent>
           <Typography variant="h6" gutterBottom>
             {p.title}
           </Typography>
-
+          <Typography variant="body2" color="text.secondary">
+            {dayjs(p.startDate).format("DD MMM YYYY")} –{" "}
+            {dayjs(p.endDate).format("DD MMM YYYY")}
+          </Typography>
           <Typography variant="body2" gutterBottom>
             Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
           </Typography>
@@ -53,33 +72,29 @@ const ChallengeProgress = () => {
           <LinearProgress
             variant="determinate"
             value={p.progressPercentage}
-            sx={{ my: 2, height: 8, borderRadius: 4 }}
-            color={p.progressPercentage >= 100 ? "success" : "primary"}
+            sx={{ my: 1.5, height: 8, borderRadius: 4 }}
+            color={
+              isMissed
+                ? "error"
+                : p.progressPercentage >= 100
+                ? "success"
+                : "primary"
+            }
           />
 
-          <Typography variant="caption" gutterBottom>
+          <Typography
+            variant="caption"
+            color={isMissed ? "error" : "text.secondary"}
+          >
             {p.progressPercentage}% completed
+            {isMissed ? " — Challenge Ended" : ""}
           </Typography>
-
-          {p.progressPercentage >= 100 && (
-            <Typography
-              variant="subtitle2"
-              sx={{
-                color: "green",
-                mt: 1,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              🎉 <strong style={{ marginLeft: 8 }}>Challenge Completed!</strong>
-            </Typography>
-          )}
         </CardContent>
       </Card>
     </Grid>
   );
 
-  const activeList = tab === 0 ? inProgress : completed;
+  const activeList = categorized[tab];
 
   return (
     <Container sx={{ mt: 4, mb: 4 }} maxWidth="lg">
@@ -89,20 +104,25 @@ const ChallengeProgress = () => {
 
       <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
         <Tabs value={tab} onChange={(_, newVal) => setTab(newVal)} centered>
-          <Tab label="⏳ In Progress" />
-          <Tab label="✅ Completed" />
+          {tabs.map((label, index) => (
+            <Tab key={index} label={label} />
+          ))}
         </Tabs>
       </Box>
 
       {activeList.length > 0 ? (
         <Grid container spacing={2}>
-          {activeList.map(renderCard)}
+          {activeList.map((challenge) =>
+            renderCard(challenge, tab === 2 /* isMissed */)
+          )}
         </Grid>
       ) : (
         <Typography sx={{ mt: 4 }} color="text.secondary" align="center">
           {tab === 0
             ? "No ongoing challenges. Join one to get started!"
-            : "You haven’t completed any challenges yet."}
+            : tab === 1
+            ? "You haven’t completed any challenges yet."
+            : "No missed challenges!"}
         </Typography>
       )}
     </Container>

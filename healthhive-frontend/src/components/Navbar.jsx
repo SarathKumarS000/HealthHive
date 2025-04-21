@@ -35,6 +35,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import MoodIcon from "@mui/icons-material/Mood";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -124,11 +125,7 @@ const Navbar = () => {
       icon: <EventIcon />,
       path: "/book-appointment",
     },
-    {
-      text: "My Appointments",
-      icon: <EventIcon />,
-      path: "/my-appointments",
-    },
+    { text: "My Appointments", icon: <EventIcon />, path: "/my-appointments" },
     { text: "Mental Health", icon: <FavoriteIcon />, path: "/mental-health" },
     { text: "Emergency", icon: <EmergencyIcon />, path: "/emergency" },
     { text: "Volunteer", icon: <VolunteerActivismIcon />, path: "/volunteer" },
@@ -272,7 +269,8 @@ const Navbar = () => {
           )}
 
           {isLoggedIn && !isMobile ? (
-            <Box display="flex" alignItems="center" gap={1}>
+            <Box display="flex" alignItems="center" gap={1.5}>
+              <NotificationBell />
               <Avatar
                 sx={{
                   width: 32,

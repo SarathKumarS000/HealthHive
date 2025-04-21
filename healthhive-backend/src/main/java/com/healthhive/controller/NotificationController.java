@@ -1,0 +1,56 @@
+package com.healthhive.controller;
+
+import com.healthhive.model.Notification;
+import com.healthhive.model.User;
+import com.healthhive.repository.UserRepository;
+import com.healthhive.service.NotificationService;
+import com.healthhive.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+@RestController
+@RequestMapping("/api/notifications")
+public class NotificationController {
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User resolveUser(String token) {
+        if (token == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        String username = jwtUtil.extractUsername(token);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+    }
+
+    @GetMapping
+    public List<Notification> getUserNotifications(
+            @CookieValue(name = "jwt", required = false) String token) {
+        User user = resolveUser(token);
+        return notificationService.getUserNotifications(user.getId());
+    }
+
+    @PutMapping("/{id}/read")
+    public void markAsRead(
+            @PathVariable Long id,
+            @CookieValue(name = "jwt", required = false) String token) {
+        User user = resolveUser(token);
+        notificationService.markAsRead(id, user.getId());
+    }
+
+    @PutMapping("/mark-all-read")
+    public void markAllAsRead(
+            @CookieValue(name = "jwt", required = false) String token) {
+        User user = resolveUser(token);
+        notificationService.markAllAsRead(user.getId());
+    }
+}
