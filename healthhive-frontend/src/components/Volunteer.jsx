@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Container,
   Typography,
@@ -25,6 +25,7 @@ import {
   joinVolunteerOpportunity,
   fetchJoinedOpportunityIds,
 } from "../services/apiService";
+import { NotificationContext } from "../contexts/NotificationContext";
 
 const Volunteer = () => {
   const user = useSelector((state) => state.auth.user);
@@ -43,6 +44,7 @@ const Volunteer = () => {
     message: "",
     severity: "success",
   });
+  const { fetchNotificationsFn } = useContext(NotificationContext);
 
   const loadOpportunities = async () => {
     try {
@@ -130,6 +132,8 @@ const Volunteer = () => {
         message: "Successfully joined!",
         severity: "success",
       });
+      await loadOpportunities();
+      await fetchNotificationsFn();
     } catch (err) {
       setSnackbar({
         open: true,
@@ -264,7 +268,7 @@ const Volunteer = () => {
                           <React.Fragment key={user.id}>
                             <ListItem>
                               <ListItemText
-                                primary={user.username}
+                                primary={user.fullName}
                                 secondary={user.email}
                               />
                             </ListItem>

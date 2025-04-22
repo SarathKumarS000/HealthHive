@@ -21,6 +21,7 @@ import HealthChallenges from "./components/HealthChallenges";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ChallengeProgress from "./components/ChallengeProgress";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -61,28 +62,33 @@ const App = () => {
 
   return (
     <Router>
-      <Navbar />
-      <Box sx={{ pt: 10, pb: 2 }}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/insights" element={<CommunityInsights />} />
-            <Route path="/my-insights" element={<PersonalInsights />} />
-            <Route path="/health-log" element={<HealthLog />} />
-            <Route path="/resources" element={<HealthResources />} />
-            <Route path="/book-appointment" element={<BookAppointment />} />
-            <Route path="/my-appointments" element={<MyAppointments />} />
-            <Route path="/mental-health" element={<MentalHealthSupport />} />
-            <Route path="/emergency" element={<EmergencySupport />} />
-            <Route path="/volunteer" element={<Volunteer />} />
-            <Route path="/challenges" element={<HealthChallenges />} />
-            <Route path="/challenge-progress" element={<ChallengeProgress />} />
-          </Route>
-          <Route path="*" element={<Dashboard />} />
-        </Routes>
-      </Box>
+      <NotificationProvider>
+        <Navbar />
+        <Box sx={{ pt: 10, pb: 2 }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/insights" element={<CommunityInsights />} />
+              <Route path="/my-insights" element={<PersonalInsights />} />
+              <Route path="/health-log" element={<HealthLog />} />
+              <Route path="/resources" element={<HealthResources />} />
+              <Route path="/book-appointment" element={<BookAppointment />} />
+              <Route path="/my-appointments" element={<MyAppointments />} />
+              <Route path="/mental-health" element={<MentalHealthSupport />} />
+              <Route path="/emergency" element={<EmergencySupport />} />
+              <Route path="/volunteer" element={<Volunteer />} />
+              <Route path="/challenges" element={<HealthChallenges />} />
+              <Route
+                path="/challenge-progress"
+                element={<ChallengeProgress />}
+              />
+            </Route>
+            <Route path="*" element={<Dashboard />} />
+          </Routes>
+        </Box>
+      </NotificationProvider>
     </Router>
   );
 };

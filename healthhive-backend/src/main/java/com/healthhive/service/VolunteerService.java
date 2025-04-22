@@ -18,6 +18,9 @@ public class VolunteerService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public List<VolunteerOpportunity> getAllOpportunities() {
         return repository.findAll();
     }
@@ -48,6 +51,10 @@ public class VolunteerService {
 
         opportunity.getJoinedUsers().add(user);
         repository.save(opportunity);
+        notificationService.sendNotification(
+                user,
+                "You have successfully joined the volunteer opportunity: " + opportunity.getTitle()
+        );
     }
 }
 

@@ -125,7 +125,7 @@ const EmergencySupport = () => {
                 "Colleague",
                 "Relative",
                 "Doctor",
-                "Neighbor",
+                "Neighbour",
                 "Guardian",
                 "Other",
               ].map((option) => (

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Container,
   Typography,
   Card,
   CardContent,
   FormControl,
-  InputLabel,
-  Select,
+  TextField,
   MenuItem,
   Button,
   Alert,
@@ -20,12 +19,13 @@ import { fetchAllResources, bookAppointment } from "../services/apiService";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { NotificationContext } from "../contexts/NotificationContext";
 
 const generateDateTimeSlots = () => {
   const slots = [];
   const today = dayjs().startOf("day");
 
-  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+  for (let dayOffset = 1; dayOffset < 7; dayOffset++) {
     const date = today.add(dayOffset, "day").format("YYYY-MM-DD");
 
     [
@@ -58,6 +58,7 @@ const BookAppointment = () => {
   const [message, setMessage] = useState(null);
   const [resourceDisabled, setResourceDisabled] = useState(!!selectedResource);
   const dateTimeSlots = generateDateTimeSlots();
+  const { fetchNotificationsFn } = useContext(NotificationContext);
 
   useEffect(() => {
     fetchAllResources()
@@ -94,6 +95,7 @@ const BookAppointment = () => {
       });
       setAppointment({ resourceId: "", dateTime: "" });
       setResourceDisabled(false);
+      await fetchNotificationsFn();
     } catch (error) {
       setMessage({ type: "error", text: "Failed to book appointment." });
     }
@@ -136,42 +138,98 @@ const BookAppointment = () => {
               </Alert>
             )}
 
-            {/* Select Health Resource */}
-            <FormControl fullWidth disabled={resourceDisabled}>
-              <InputLabel>Select Health Resource</InputLabel>
-              <Select
+            <FormControl fullWidth required disabled={resourceDisabled}>
+              <TextField
+                select
+                label="Select Health Resource"
                 name="resourceId"
                 value={appointment.resourceId}
                 onChange={handleChange}
-                required
+                variant="outlined"
+                fullWidth
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
               >
+                <MenuItem value="">
+                  <em>Select a Resource</em>
+                </MenuItem>
+
                 {resources.map((res) => (
-                  <MenuItem key={res.id} value={res.id}>
+                  <MenuItem
+                    key={res.id}
+                    value={res.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
                     <LocalHospitalIcon
-                      fontSize="small"
-                      sx={{ mr: 1, color: "primary.main" }}
+                      sx={{ color: "primary.main", fontSize: 20 }}
                     />
-                    {res.name} ({res.category})
+                    <Box>
+                      <Typography variant="body2" fontWeight={500}>
+                        {res.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {res.category}
+                      </Typography>
+                    </Box>
                   </MenuItem>
                 ))}
-              </Select>
+              </TextField>
             </FormControl>
 
-            {/* Select Date & Time */}
-            <FormControl fullWidth>
-              <InputLabel>Select Date & Time</InputLabel>
-              <Select
+            <FormControl fullWidth required>
+              <TextField
+                select
+                label="Select Date & Time"
                 name="dateTime"
                 value={appointment.dateTime}
                 onChange={handleChange}
-                required
+                variant="outlined"
+                fullWidth
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 300,
+                      borderRadius: 2,
+                      boxShadow: 3,
+                    },
+                  },
+                }}
               >
                 {dateTimeSlots.map((slot, index) => (
-                  <MenuItem key={index} value={slot.value}>
-                    {slot.label}
+                  <MenuItem
+                    key={index}
+                    value={slot.value}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      "&:hover": {
+                        backgroundColor: "primary.light",
+                        color: "white",
+                      },
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={500}>
+                      {slot.label}
+                    </Typography>
                   </MenuItem>
                 ))}
-              </Select>
+              </TextField>
             </FormControl>
 
             <Button

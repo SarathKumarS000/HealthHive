@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, NotificationService notificationService) {
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
@@ -23,13 +25,21 @@ public class UserService {
         if (!isStrongPassword(userDTO.getPassword())) {
             throw new RuntimeException("Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.");
         }
+        if (userDTO.getFullName() == null || userDTO.getFullName().isEmpty()) {
+            throw new RuntimeException("Full name cannot be empty.");
+        }
 
         User user = new User();
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setFullName(userDTO.getFullName());
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        notificationService.sendNotification(savedUser, "Welcome to HealthHive, " + user.getFullName() + "! 🎉");
+
+        return savedUser;
     }
 
     private boolean isStrongPassword(String password) {

@@ -1,92 +1,162 @@
-import React, { useEffect, useState } from "react";
-import { IconButton, Badge, Menu, MenuItem, Typography } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import { useContext, useState } from "react";
 import {
-  fetchNotifications,
-  markAllNotificationsRead,
-  markNotificationAsRead,
-} from "../services/apiService";
+  IconButton,
+  Badge,
+  Menu,
+  MenuItem,
+  Typography,
+  Tooltip,
+  CircularProgress,
+  Divider,
+  Box,
+} from "@mui/material";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import { NotificationContext } from "../contexts/NotificationContext";
 
 const NotificationBell = () => {
+  const {
+    notifications,
+    unreadCount,
+    fetchNotificationsFn,
+    markAllNotificationsRead,
+    markNotificationAsRead,
+  } = useContext(NotificationContext);
+
   const [anchorEl, setAnchorEl] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingId, setLoadingId] = useState(null);
 
-  const fetchNotificationsFn = async () => {
-    try {
-      const data = await fetchNotifications();
-      setNotifications(data);
-      setUnreadCount(data.filter((n) => !n.read).length);
-    } catch (err) {
-      console.error("Error fetching notifications", err);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await markAllNotificationsRead();
-      fetchNotificationsFn();
-    } catch (err) {
-      console.error("Error marking all as read", err);
-    }
-  };
+  const handleOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   const handleNotificationClick = async (id) => {
-    try {
-      await markNotificationAsRead(id);
-      fetchNotificationsFn();
-    } catch (err) {
-      console.error("Error marking notification as read", err);
-    }
+    setLoadingId(id);
+    await markNotificationAsRead(id);
+    await fetchNotificationsFn();
+    setLoadingId(null);
   };
 
-  useEffect(() => {
-    fetchNotificationsFn();
-  }, []);
-
-  const handleOpen = (e) => {
-    setAnchorEl(e.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const open = Boolean(anchorEl);
 
   return (
     <>
-      <IconButton color="inherit" onClick={handleOpen}>
-        <Badge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
-        </Badge>
-      </IconButton>
+      <Tooltip title="Notifications">
+        <IconButton
+          color="inherit"
+          onClick={handleOpen}
+          aria-label="show notifications"
+        >
+          <Badge badgeContent={unreadCount} color="error">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+
       <Menu
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        open={open}
         onClose={handleClose}
-        PaperProps={{ style: { maxHeight: 300, width: 300 } }}
+        PaperProps={{
+          sx: {
+            maxHeight: 400,
+            maxWidth: 420,
+            width: "auto",
+            px: 0,
+            py: 0,
+          },
+        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MenuItem disabled>
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            bgcolor: "background.paper",
+            px: 2,
+            py: 1,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           <Typography variant="subtitle1" fontWeight="bold">
             Notifications
           </Typography>
-        </MenuItem>
+          {notifications.length > 0 && (
+            <Typography
+              variant="body2"
+              color="primary"
+              sx={{
+                cursor: "pointer",
+                fontWeight: 500,
+                ":hover": { textDecoration: "underline" },
+              }}
+              onClick={async () => {
+                await markAllNotificationsRead();
+                await fetchNotificationsFn();
+              }}
+            >
+              Mark all as read
+            </Typography>
+          )}
+        </Box>
+        <Divider />
+
         {notifications.length === 0 ? (
-          <MenuItem disabled>No notifications</MenuItem>
+          <MenuItem disabled>
+            <Typography variant="body2" color="text.secondary">
+              You're all caught up!
+            </Typography>
+          </MenuItem>
         ) : (
           notifications.map((n) => (
             <MenuItem
               key={n.id}
-              sx={{ fontWeight: n.read ? "normal" : "bold" }}
               onClick={() => handleNotificationClick(n.id)}
+              sx={{
+                alignItems: "flex-start",
+                flexDirection: "column",
+                gap: 0.5,
+                py: 1.2,
+                backgroundColor: n.read
+                  ? "inherit"
+                  : "rgba(25, 118, 210, 0.08)",
+                fontWeight: n.read ? "normal" : "bold",
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
             >
-              {n.message}
+              <Box display="flex" width="100%" alignItems="center">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    flexGrow: 1,
+                    wordBreak: "break-word",
+                    whiteSpace: "normal",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {n.message}
+                </Typography>
+                {loadingId === n.id && (
+                  <CircularProgress size={16} sx={{ ml: 1 }} />
+                )}
+              </Box>
+              {n.createdAt && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  {new Date(n.createdAt).toLocaleString()}
+                </Typography>
+              )}
             </MenuItem>
           ))
-        )}
-        {notifications.length > 0 && (
-          <MenuItem onClick={markAllAsRead} sx={{ justifyContent: "center" }}>
-            Mark all as read
-          </MenuItem>
         )}
       </Menu>
     </>

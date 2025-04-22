@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Container,
   Typography,
@@ -32,6 +32,7 @@ import {
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import ChallengeProgress from "./ChallengeProgress";
+import { NotificationContext } from "../contexts/NotificationContext";
 
 const HealthChallenges = () => {
   const user = useSelector((state) => state.auth.user);
@@ -58,6 +59,7 @@ const HealthChallenges = () => {
   const [showProgress, setShowProgress] = useState(false);
   const [stats, setStats] = useState({});
   const [goalFilter, setGoalFilter] = useState("");
+  const { fetchNotificationsFn } = useContext(NotificationContext);
 
   useEffect(() => {
     if (user?.id) {
@@ -163,6 +165,7 @@ const HealthChallenges = () => {
     setLoading(true);
     try {
       await joinChallenge(id, user.id);
+      await fetchNotificationsFn();
       await loadMine();
       setSnackbar({
         open: true,
@@ -180,6 +183,7 @@ const HealthChallenges = () => {
     setLoading(true);
     try {
       await cancelJoinChallenge(id, user.id);
+      await fetchNotificationsFn();
       await loadMine();
       setSnackbar({ open: true, message: "Canceled join.", severity: "info" });
     } catch {

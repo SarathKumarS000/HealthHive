@@ -4,28 +4,32 @@ import {
   Typography,
   Card,
   CardContent,
+  Paper,
+  LinearProgress,
   Grid,
   Box,
   Button,
   Avatar,
-  Paper,
-  LinearProgress,
 } from "@mui/material";
 import {
   DirectionsWalk as StepsIcon,
   LocalFireDepartment as CaloriesIcon,
   Hotel as SleepIcon,
+  Mail as MailIcon,
+  AccountCircle as AccountCircleIcon,
 } from "@mui/icons-material";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   fetchDailySummaries,
   fetchChallengeProgress,
 } from "../services/apiService";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+
+dayjs.extend(isSameOrAfter);
 
 const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
@@ -43,7 +47,7 @@ const Dashboard = () => {
             fetchChallengeProgress(userDetails.id),
           ]);
           setDailySummaries(summaryRes.data || []);
-          setChallengeProgress(progressRes.data.reverse() || []);
+          setChallengeProgress((progressRes.data || []).reverse());
         }
       } catch (err) {
         console.error("Error loading dashboard data", err);
@@ -57,7 +61,6 @@ const Dashboard = () => {
 
   const latest = dailySummaries[dailySummaries.length - 1];
 
-  dayjs.extend(isSameOrAfter);
   const today = dayjs();
   const sevenDaysAgo = today.subtract(6, "day");
 
@@ -106,33 +109,20 @@ const Dashboard = () => {
       steps: {
         type: "linear",
         position: "left",
-        title: {
-          display: true,
-          text: "Steps",
-        },
+        title: { display: true, text: "Steps" },
       },
       calories: {
         type: "linear",
         position: "right",
-        title: {
-          display: true,
-          text: "Calories (kcal)",
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
+        title: { display: true, text: "Calories (kcal)" },
+        grid: { drawOnChartArea: false },
       },
       sleep: {
         type: "linear",
         position: "right",
         offset: true,
-        title: {
-          display: true,
-          text: "Sleep (hrs)",
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
+        title: { display: true, text: "Sleep (hrs)" },
+        grid: { drawOnChartArea: false },
       },
     },
   };
@@ -151,29 +141,91 @@ const Dashboard = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box display="flex" alignItems="center">
+      {/* User Info Section */}
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3, mb: 3 }}>
+        <Box
+          display="flex"
+          alignItems="center"
+          sx={{
+            gap: { xs: 2, sm: 3 },
+            flexDirection: { xs: "column", sm: "row" },
+            textAlign: { xs: "center", sm: "left" },
+          }}
+        >
           <Avatar
-            sx={{ width: 64, height: 64, bgcolor: "primary.main", mr: 2 }}
+            sx={{
+              width: 72,
+              height: 72,
+              bgcolor: "primary.main",
+              fontSize: 32,
+            }}
           >
-            {userDetails.name?.charAt(0).toUpperCase()}
+            {userDetails?.fullName?.charAt(0).toUpperCase() || "U"}
           </Avatar>
+
           <Box>
-            <Typography variant="h5">{userDetails.username}</Typography>
-            <Typography variant="body2" color="textSecondary">
-              {userDetails.email}
+            <Typography
+              variant="h5"
+              fontWeight={600}
+              gutterBottom
+              sx={{ fontSize: { xs: "1.2rem", sm: "1.5rem" } }}
+            >
+              Welcome, {userDetails?.fullName || "User"}
+            </Typography>
+
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent={{ xs: "center", sm: "flex-start" }}
+              sx={{ mb: 1 }}
+            >
+              <AccountCircleIcon sx={{ fontSize: 18, mr: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                <strong>Username:</strong>
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 0.5 }}
+              >
+                {userDetails?.username || "Username not available"}
+              </Typography>
+            </Box>
+
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent={{ xs: "center", sm: "flex-start" }}
+              sx={{ mb: 1 }}
+            >
+              <MailIcon sx={{ fontSize: 18, mr: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                <strong>Email:</strong>
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 0.5 }}
+              >
+                {userDetails?.email || "Email not available"}
+              </Typography>
+            </Box>
+
+            <Typography variant="body2" color="text.secondary">
+              We're glad to have you on board! Let’s make progress towards your
+              health goals.
             </Typography>
           </Box>
         </Box>
       </Paper>
 
+      {/* Daily Summary Section */}
       {latest ? (
         <>
           <Typography variant="h6" gutterBottom>
-            Last Summary: {dayjs(latest.date).format("DD MMM YYYY")}
+            🗓️ Last Summary: {dayjs(latest.date).format("DD MMM YYYY")}
           </Typography>
-
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
             <DashboardStat
               icon={<StepsIcon />}
               label="Steps"
@@ -194,108 +246,38 @@ const Dashboard = () => {
             />
           </Grid>
 
+          {/* 7 Days Trend Chart */}
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" gutterBottom>
-              Last 7 Days Trend
+              📊 Last 7 Days Trend
             </Typography>
-            <Line data={chartData} options={chartOptions} />
+            <Paper elevation={2} sx={{ p: 2, borderRadius: 3 }}>
+              <Line data={chartData} options={chartOptions} />
+            </Paper>
           </Box>
 
+          {/* Health Tip */}
           <Paper
+            elevation={1}
             sx={{
               mt: 4,
-              p: 2,
-              backgroundColor: "#f9fbe7",
-              borderLeft: "5px solid #8bc34a",
+              p: 3,
+              backgroundColor: "#e8f5e9",
+              borderLeft: "6px solid #66bb6a",
+              borderRadius: 2,
             }}
           >
             <Typography variant="subtitle1">
               <strong>💡 Health Tip:</strong> Drink at least 2 liters of water a
-              day and aim for 7-8 hours of sleep!
+              day and aim for 7–8 hours of sleep!
             </Typography>
           </Paper>
 
-          {(() => {
-            const ongoingChallenges = challengeProgress.filter(
-              (p) =>
-                p.progressPercentage < 100 &&
-                dayjs().isBefore(dayjs(p.endDate), "day")
-            );
-
-            return (
-              <Box sx={{ mt: 5 }}>
-                <Typography variant="h6" gutterBottom>
-                  🏃‍♂️ Ongoing Challenges
-                </Typography>
-
-                {ongoingChallenges.length > 0 ? (
-                  <Grid container spacing={2}>
-                    {ongoingChallenges.slice(0, 2).map((p) => (
-                      <Grid item xs={12} sm={6} key={p.challengeId}>
-                        <Card
-                          sx={{
-                            border: "1px solid #ccc",
-                            backgroundColor: "#f5faff",
-                            transition: "transform 0.2s",
-                            "&:hover": { transform: "scale(1.02)" },
-                          }}
-                        >
-                          <CardContent>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                              {p.title}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {dayjs(p.startDate).format("DD MMM YYYY")} –{" "}
-                              {dayjs(p.endDate).format("DD MMM YYYY")}
-                            </Typography>
-                            <Typography variant="body2" mt={0.5}>
-                              Goal: {p.goal} {p.goalType} | Achieved:{" "}
-                              {p.achieved}
-                            </Typography>
-                            <LinearProgress
-                              variant="determinate"
-                              value={p.progressPercentage}
-                              sx={{ my: 1, height: 8, borderRadius: 4 }}
-                              color="primary"
-                            />
-                            <Typography variant="caption">
-                              {p.progressPercentage}% completed
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              display="block"
-                              mt={1}
-                              color="text.secondary"
-                            >
-                              ⏳ Ends in {dayjs(p.endDate).diff(dayjs(), "day")}{" "}
-                              days
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                ) : (
-                  <Typography
-                    variant="body1"
-                    sx={{ mt: 2 }}
-                    color="text.secondary"
-                  >
-                    No active challenges right now. Join one to get started!
-                  </Typography>
-                )}
-
-                <Box textAlign="center" mt={3}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => navigate("/challenge-progress")}
-                  >
-                    View All Progress
-                  </Button>
-                </Box>
-              </Box>
-            );
-          })()}
+          {/* Ongoing Challenges */}
+          <OngoingChallenges
+            challenges={challengeProgress}
+            navigate={navigate}
+          />
         </>
       ) : (
         <Box textAlign="center" mt={5}>
@@ -309,15 +291,120 @@ const Dashboard = () => {
 };
 
 const DashboardStat = ({ icon, label, value, color }) => (
-  <Grid item xs={12} sm={6} md={4}>
-    <Card sx={{ p: 2, display: "flex", alignItems: "center" }}>
-      <Box sx={{ mr: 2, color }}>{icon}</Box>
-      <CardContent>
-        <Typography variant="subtitle2">{label}</Typography>
-        <Typography variant="h5">{value}</Typography>
-      </CardContent>
+  <Grid item xs={12} sm={6} md={4} sx={{ height: "100%" }}>
+    <Card
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        borderRadius: 3,
+        boxShadow: 2,
+        px: 2,
+        py: 1.5,
+        height: "100%",
+        mb: { xs: 1, sm: 0 },
+        transition: "box-shadow 0.3s ease",
+        "&:hover": { boxShadow: 4 },
+      }}
+    >
+      <Box
+        sx={{
+          mr: 2,
+          color,
+          fontSize: 36,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {icon}
+      </Box>
+      <Box>
+        <Typography variant="subtitle2" sx={{ mb: 0.2 }}>
+          {label}
+        </Typography>
+        <Typography variant="h5" fontWeight={600} lineHeight={1.2}>
+          {value}
+        </Typography>
+      </Box>
     </Card>
   </Grid>
 );
+
+const OngoingChallenges = ({ challenges, navigate }) => {
+  const ongoing = challenges.filter(
+    (p) =>
+      p.progressPercentage < 100 && dayjs().isBefore(dayjs(p.endDate), "day")
+  );
+
+  return (
+    <Box sx={{ mt: 5 }}>
+      <Typography variant="h6" gutterBottom>
+        🏃‍♂️ Ongoing Challenges
+      </Typography>
+      {ongoing.length > 0 ? (
+        <Grid container spacing={2}>
+          {ongoing.slice(0, 2).map((p) => (
+            <Grid item xs={12} sm={6} key={p.challengeId}>
+              <Card
+                sx={{
+                  p: 2,
+                  border: "1px solid #ddd",
+                  backgroundColor: "#f0f8ff",
+                  borderRadius: 3,
+                  boxShadow: 1,
+                  transition: "transform 0.3s ease",
+                  "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
+                }}
+              >
+                <CardContent>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {p.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {dayjs(p.startDate).format("DD MMM")} –{" "}
+                    {dayjs(p.endDate).format("DD MMM")}
+                  </Typography>
+                  <Typography variant="body2" mt={0.5}>
+                    Goal: {p.goal} {p.goalType} | Achieved: {p.achieved}
+                  </Typography>
+                  <Box sx={{ my: 1 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={p.progressPercentage}
+                      sx={{ height: 10, borderRadius: 5 }}
+                      color="primary"
+                    />
+                  </Box>
+                  <Typography variant="caption" fontWeight="medium">
+                    {p.progressPercentage}% completed
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    mt={1}
+                    color="text.secondary"
+                  >
+                    ⏳ Ends in {dayjs(p.endDate).diff(dayjs(), "day")} days
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Typography variant="body1" sx={{ mt: 2 }} color="text.secondary">
+          No active challenges right now. Join one to get started!
+        </Typography>
+      )}
+      <Box textAlign="center" mt={3}>
+        <Button
+          variant="outlined"
+          onClick={() => navigate("/challenge-progress")}
+        >
+          View All Progress
+        </Button>
+      </Box>
+    </Box>
+  );
+};
 
 export default Dashboard;

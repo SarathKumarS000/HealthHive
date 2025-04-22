@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   Container,
   TextField,
@@ -42,6 +42,8 @@ import {
 import { moodOptions } from "../utils/commons";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
+import { moods } from "../utils/commons";
+import { NotificationContext } from "../contexts/NotificationContext";
 
 const HealthLog = () => {
   const user = useSelector((state) => state.auth.user);
@@ -57,11 +59,13 @@ const HealthLog = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const alertRef = useRef(null);
+  const { fetchNotificationsFn } = useContext(NotificationContext);
 
   const loadLogs = async () => {
     try {
       const res = await fetchHealthData(user.id);
       setLogs(res.data);
+      await fetchNotificationsFn();
     } catch (err) {
       console.error("Failed to fetch logs", err);
     }
@@ -340,6 +344,10 @@ const HealthLog = () => {
                         ? "#ffebee"
                         : "#fff",
                     transition: "0.3s ease",
+                    "&:hover": {
+                      boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
+                      transform: "translateY(-2px)",
+                    },
                   }}
                 >
                   <CardContent>
@@ -349,8 +357,12 @@ const HealthLog = () => {
                     <Typography>👣 Steps: {log.steps}</Typography>
                     <Typography>🔥 Calories: {log.calories}</Typography>
                     <Typography>😴 Sleep: {log.sleepHours} hrs</Typography>
-                    <Typography>😊 Mood: {log.mood}</Typography>
+                    <Typography>
+                      😊 Mood:{" "}
+                      {moods.find((mood) => mood.key === log.mood)?.label}
+                    </Typography>
                   </CardContent>
+
                   <Box
                     sx={{
                       position: "absolute",
@@ -358,9 +370,14 @@ const HealthLog = () => {
                       right: 8,
                       display: "flex",
                       gap: 1,
+                      alignItems: "center",
                     }}
                   >
-                    <IconButton size="small" onClick={() => handleEdit(log)}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEdit(log)}
+                      sx={{ color: "#ff9800" }}
+                    >
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton

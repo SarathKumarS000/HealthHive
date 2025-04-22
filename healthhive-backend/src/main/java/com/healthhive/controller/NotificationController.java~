@@ -1,12 +1,14 @@
 package com.healthhive.controller;
 
 import com.healthhive.dto.NotificationDTO;
+import com.healthhive.model.Notification;
 import com.healthhive.model.User;
 import com.healthhive.repository.UserRepository;
 import com.healthhive.service.NotificationService;
 import com.healthhive.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 

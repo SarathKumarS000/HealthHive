@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -19,6 +20,9 @@ public class HealthService {
 
     private final HealthDataRepository healthDataRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
 
     public void logHealthData(HealthDataDTO dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -33,6 +37,8 @@ public class HealthService {
         );
 
         healthDataRepository.save(healthData);
+
+        notificationService.sendNotification(user, "Health data logged successfully.");
     }
 
     public List<HealthData> getUserHealthData(Long userId) {
@@ -53,11 +59,42 @@ public class HealthService {
         existing.setMood(updatedLog.getMood());
         existing.setDate(LocalDateTime.now());
 
-        return healthDataRepository.save(existing);
+        HealthData updated = healthDataRepository.save(existing);
+
+        notificationService.sendNotification(existing.getUser(), "Health data updated.");
+
+        return updated;
     }
 
     public void deleteLog(Long id) {
-        healthDataRepository.deleteById(id);
+        HealthData log = healthDataRepository.findById(id).orElse(null);
+        if (log != null) {
+            healthDataRepository.deleteById(id);
+
+            LocalDateTime logDate = log.getDate();
+            String formattedDate = logDate.format(formatter);
+
+            notificationService.sendNotification(
+                    log.getUser(),
+                    "Your health log for " + formattedDate + " has been deleted."
+            );
+        }
+    }
+
+    public void checkAndNotifyMissedLogs() {
+        List<User> users = userRepository.findAll();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        for (User user : users) {
+            boolean hasLog = healthDataRepository
+                    .findByUserIdOrderByDateDesc(user.getId())
+                    .stream()
+                    .anyMatch(log -> log.getDate().toLocalDate().isEqual(yesterday));
+
+            if (!hasLog) {
+                notificationService.sendNotification(user, "You missed logging your health data yesterday.");
+            }
+        }
     }
 
     public List<DailySummaryDTO> getUserDailySummaries(Long userId) {

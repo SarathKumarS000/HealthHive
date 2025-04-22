@@ -19,7 +19,7 @@ public class HealthChallengeService {
     private final HealthChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final HealthDataRepository healthDataRepository;
-    private final HealthDataRepository logRepository;
+    private final NotificationService notificationService;
 
     public HealthChallenge save(HealthChallenge challenge) {
         return challengeRepository.save(challenge);
@@ -33,7 +33,7 @@ public class HealthChallengeService {
         return challengeRepository.findByUserId(userId);
     }
 
-    public HealthChallenge joinChallenge(Long challengeId, Long userId) {
+    public void joinChallenge(Long challengeId, Long userId) {
         HealthChallenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new RuntimeException("Challenge not found"));
 
@@ -42,9 +42,9 @@ public class HealthChallengeService {
 
         if (!challenge.getParticipants().contains(user)) {
             challenge.getParticipants().add(user);
-            return challengeRepository.save(challenge);
+            notificationService.sendNotification(user, "You've successfully joined the challenge: " + challenge.getTitle());
+            challengeRepository.save(challenge);
         }
-        return challenge;
     }
 
     public void cancelJoin(Long challengeId, Long userId) {
@@ -57,6 +57,7 @@ public class HealthChallengeService {
         if (challenge.getParticipants().contains(user)) {
             challenge.getParticipants().remove(user);
             challengeRepository.save(challenge);
+            notificationService.sendNotification(user, "You've cancelled your participation in: " + challenge.getTitle());
         }
     }
 
