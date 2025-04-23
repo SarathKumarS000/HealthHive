@@ -10,8 +10,8 @@ public class DailyHealthCheckScheduler {
 
     private final HealthService healthService;
 
-    // Run every day at 9 AM
-    @Scheduled(cron = "0 0 9 * * *")
+    // Run every day at 10 AM
+    @Scheduled(cron = "0 0 10 * * *")
     public void checkMissedHealthLogs() {
         healthService.checkAndNotifyMissedLogs();
     }

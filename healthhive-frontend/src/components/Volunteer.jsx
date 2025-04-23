@@ -15,9 +15,15 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Paper,
+  Chip,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CancelIcon from "@mui/icons-material/Cancel";
+import PeopleIcon from "@mui/icons-material/People";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import PersonIcon from "@mui/icons-material/Person";
 import { useSelector } from "react-redux";
 import {
   fetchVolunteerOpportunities,
@@ -50,7 +56,6 @@ const Volunteer = () => {
     try {
       const res = await fetchVolunteerOpportunities();
       setOpportunities(res.data || []);
-
       if (user?.id) {
         const joined = await fetchJoinedOpportunityIds(user.id);
         setJoinedIds(joined.data || []);
@@ -148,76 +153,66 @@ const Volunteer = () => {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" align="center" sx={{ mt: 4 }}>
+    <Container maxWidth="lg">
+      <Typography
+        variant="h4"
+        align="center"
+        sx={{ mt: 5, mb: 2, fontWeight: 600 }}
+      >
         Volunteer Opportunities
       </Typography>
 
-      <Box sx={{ mb: 3, textAlign: "center" }}>
+      <Box sx={{ mb: 4, textAlign: "center" }}>
         <Button
           startIcon={formOpen ? <CancelIcon /> : <AddCircleOutlineIcon />}
-          variant="outlined"
+          variant={formOpen ? "outlined" : "contained"}
           onClick={() => setFormOpen(!formOpen)}
+          color={formOpen ? "error" : "primary"}
         >
           {formOpen ? "Cancel" : "Add Opportunity"}
         </Button>
 
         <Collapse in={formOpen}>
-          <Box
-            sx={{
-              mt: 2,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-              maxWidth: 500,
-              mx: "auto",
-            }}
-          >
-            <TextField
-              label="Title"
-              name="title"
-              value={newOpportunity.title}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Description"
-              name="description"
-              value={newOpportunity.description}
-              onChange={handleChange}
-              multiline
-              rows={3}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Location"
-              name="location"
-              value={newOpportunity.location}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Date"
-              name="date"
-              type="date"
-              value={newOpportunity.date}
-              onChange={handleChange}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ min: new Date().toISOString().split("T")[0] }}
-              required
-            />
-            <Button variant="contained" onClick={handleCreate}>
-              Submit Opportunity
-            </Button>
-          </Box>
+          <Paper elevation={3} sx={{ p: 3, mt: 3, maxWidth: 600, mx: "auto" }}>
+            <Grid container spacing={2}>
+              {["title", "description", "location"].map((field) => (
+                <Grid item xs={12} key={field}>
+                  <TextField
+                    label={field[0].toUpperCase() + field.slice(1)}
+                    name={field}
+                    value={newOpportunity[field]}
+                    onChange={handleChange}
+                    fullWidth
+                    required
+                    multiline={field === "description"}
+                    rows={field === "description" ? 3 : 1}
+                  />
+                </Grid>
+              ))}
+              <Grid item xs={12}>
+                <TextField
+                  label="Date"
+                  name="date"
+                  type="date"
+                  value={newOpportunity.date}
+                  onChange={handleChange}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ min: new Date().toISOString().split("T")[0] }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} textAlign="center">
+                <Button variant="contained" onClick={handleCreate}>
+                  Submit
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
         </Collapse>
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {[...opportunities]
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .map((op) => {
@@ -227,24 +222,59 @@ const Volunteer = () => {
 
             return (
               <Grid item xs={12} sm={6} md={4} key={op.id}>
-                <Card>
+                <Card
+                  sx={{
+                    borderLeft: isPast ? "5px solid #ccc" : "5px solid #1976d2",
+                    transition: "all 0.3s",
+                    backgroundColor: isPast ? "#f7f7f7" : "#ffffff",
+                  }}
+                  elevation={3}
+                >
                   <CardContent>
-                    <Typography variant="h6">{op.title}</Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
+                    <Typography variant="h6" gutterBottom>
+                      {op.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                    >
                       {op.description}
                     </Typography>
-                    <Typography variant="body2">📍 {op.location}</Typography>
-                    <Typography variant="body2">📅 {op.date}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      🧑‍💼 Posted by: {op.postedBy?.username}
+
+                    <Typography
+                      variant="body2"
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <LocationOnIcon fontSize="small" /> {op.location}
                     </Typography>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      👥 Joined: {op.joinedUsers?.length || 0}
+
+                    <Typography
+                      variant="body2"
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <CalendarTodayIcon fontSize="small" /> {op.date}
                     </Typography>
-                    <Box sx={{ mt: 1 }}>
+
+                    <Typography
+                      variant="body2"
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <PersonIcon fontSize="small" /> {op.postedBy?.username}
+                    </Typography>
+
+                    <Chip
+                      icon={<PeopleIcon />}
+                      label={`Joined: ${op.joinedUsers?.length || 0}`}
+                      size="small"
+                      sx={{ mt: 1 }}
+                    />
+
+                    <Box sx={{ mt: 2 }}>
                       <Button
                         variant="outlined"
                         size="small"
+                        fullWidth
                         disabled={isJoined || isPast}
                         onClick={() => handleJoin(op.id)}
                       >
@@ -254,10 +284,11 @@ const Volunteer = () => {
                       {op.joinedUsers?.length > 0 && (
                         <Button
                           size="small"
-                          sx={{ ml: 1 }}
+                          fullWidth
+                          sx={{ mt: 1 }}
                           onClick={() => toggleJoinedList(op.id)}
                         >
-                          {isExpanded ? "Hide" : "View"} Members
+                          {isExpanded ? "Hide Members" : "View Members"}
                         </Button>
                       )}
                     </Box>

@@ -227,44 +227,58 @@ const HealthChallenges = () => {
           value={tab}
           onChange={(_, v) => setTab(v)}
           centered
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            ".MuiTabs-indicator": { backgroundColor: "#1976d2" },
+            ".MuiTab-root": {
+              textTransform: "none",
+              fontWeight: "bold",
+              fontSize: "16px",
+            },
+          }}
         >
           <Tab label="All Challenges" />
           <Tab label="My Challenges" />
         </Tabs>
 
         <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          gap={2}
-          flexWrap="wrap"
-          mb={2}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+            mb: 3,
+            maxWidth: 900,
+            mx: "auto",
+          }}
         >
-          <Button
-            variant={formOpen ? "contained" : "outlined"}
-            color={formOpen ? "error" : "primary"}
-            onClick={() => setFormOpen(!formOpen)}
-          >
-            {formOpen ? "Cancel" : "Create Challenge"}
-          </Button>
-
           {tab === 1 && myChallenges.length > 0 && (
             <Button
               variant="contained"
               color="success"
               onClick={() => setShowProgress(true)}
+              sx={{ flex: 1, fontSize: "16px", py: 1.5 }}
             >
               📊 View Overall Progress
             </Button>
           )}
 
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>Filter by Goal Type</InputLabel>
+          <Button
+            variant={formOpen ? "contained" : "outlined"}
+            color={formOpen ? "error" : "primary"}
+            onClick={() => setFormOpen(!formOpen)}
+            sx={{ flex: 1, fontSize: "16px", py: 1.5 }}
+          >
+            {formOpen ? "Cancel" : "Create Challenge"}
+          </Button>
+
+          <FormControl sx={{ flex: 1 }}>
+            <InputLabel>Goal Type</InputLabel>
             <Select
               value={goalFilter}
               onChange={(e) => setGoalFilter(e.target.value)}
-              label="Filter by Goal Type"
+              label="Goal Type"
+              sx={{ borderRadius: 2 }}
             >
               <MenuItem value="">All</MenuItem>
               <MenuItem value="steps">Steps</MenuItem>
@@ -282,6 +296,10 @@ const HealthChallenges = () => {
               mb: 3,
               maxWidth: 600,
               mx: "auto",
+              p: 3,
+              borderRadius: 3,
+              boxShadow: 2,
+              backgroundColor: "#fafafa",
             }}
           >
             <TextField
@@ -344,14 +362,19 @@ const HealthChallenges = () => {
               value={form.goal}
               onChange={(e) => {
                 const value = parseInt(e.target.value, 10);
-                if (value >= 0 || e.target.value === "")
+                if (value >= 0 || e.target.value === "") {
                   setForm({ ...form, goal: e.target.value });
+                }
               }}
               inputProps={{ min: 0 }}
               fullWidth
               required
             />
-            <Button variant="contained" onClick={handleCreate}>
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              sx={{ py: 1.5, fontSize: "16px" }}
+            >
               Submit
             </Button>
           </Box>
@@ -366,62 +389,76 @@ const HealthChallenges = () => {
                   sx={{
                     opacity: isEnded ? 0.6 : 1,
                     pointerEvents: isEnded || showProgress ? "none" : "auto",
-                    position: "relative",
+                    transition: "0.3s",
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    "&:hover": {
+                      boxShadow: 6,
+                      transform: "scale(1.02)",
+                    },
                   }}
                 >
                   <CardContent>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 600 }}
+                      gutterBottom
+                    >
                       {c.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      {c.description || "No description provided."}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      📅 {dayjs(c.startDate).format("MMM D, YYYY")} —{" "}
-                      {dayjs(c.endDate).format("MMM D, YYYY")}
                     </Typography>
                     <Typography
                       variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1 }}
+                      sx={{ mb: 1, color: "text.secondary" }}
                     >
-                      🎯 <strong>Goal:</strong> {c.goal} {c.goalType}
+                      {c.description || "No description provided."}
                     </Typography>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      👥 Participants: {stats[c.id]?.totalParticipants ?? "—"} |
-                      ✅ Completed: {stats[c.id]?.completedParticipants ?? "—"}
+                    <Typography
+                      variant="caption"
+                      sx={{ display: "block", mb: 1 }}
+                    >
+                      📅 {dayjs(c.startDate).format("MMM D, YYYY")} -{" "}
+                      {dayjs(c.endDate).format("MMM D, YYYY")}
                     </Typography>
-
-                    {isEnded && (
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      🎯 {c.goal} {c.goalType}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ mb: 1, color: "text.secondary" }}
+                    >
+                      👥 {stats[c.id]?.totalParticipants || 0} joined | ✅{" "}
+                      {stats[c.id]?.completedParticipants || 0} completed
+                    </Typography>
+                    {isEnded ? (
                       <Typography
-                        variant="caption"
+                        variant="body2"
                         color="error"
-                        sx={{ mt: 1, display: "block", fontWeight: 600 }}
+                        align="center"
+                        sx={{ mt: 1.5, fontWeight: 500 }}
                       >
                         🚫 Challenge Ended
                       </Typography>
+                    ) : myChallenges.includes(c.id) ? (
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleCancel(c.id)}
+                        disabled={loading}
+                      >
+                        Cancel Join
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleJoin(c.id)}
+                        disabled={loading}
+                      >
+                        Join Challenge
+                      </Button>
                     )}
-
-                    <Box mt={2}>
-                      {myChallenges.includes(c.id) ? (
-                        <Button
-                          variant="outlined"
-                          onClick={() => handleCancel(c.id)}
-                          disabled={loading || isEnded}
-                          sx={{ mr: 1 }}
-                        >
-                          Cancel
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="contained"
-                          onClick={() => handleJoin(c.id)}
-                          disabled={loading || isEnded}
-                        >
-                          Join
-                        </Button>
-                      )}
-                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -461,10 +498,17 @@ const HealthChallenges = () => {
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+        <Alert
+          severity={snackbar.severity}
+          sx={{ width: "100%", fontWeight: 500, fontSize: "15px" }}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          {snackbar.message}
+        </Alert>
       </Snackbar>
     </Container>
   );
