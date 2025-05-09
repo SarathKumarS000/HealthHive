@@ -33,12 +33,16 @@ const ChallengeProgress = () => {
   const today = dayjs();
 
   const inProgress = progressList.filter(
-    (p) => p.progressPercentage < 100 && dayjs(p.endDate).isAfter(today, "day")
+    (p) =>
+      p.progressPercentage < 100 &&
+      dayjs(p.endDate).endOf("day").isSameOrAfter(today)
   );
   const completed = progressList.filter((p) => p.progressPercentage >= 100);
   const missed = progressList.filter(
-    (p) => p.progressPercentage < 100 && dayjs(p.endDate).isBefore(today, "day")
-  );
+    (p) =>
+      p.progressPercentage < 100 &&
+      dayjs(p.endDate).endOf("day").isBefore(today)
+  );  
 
   const tabs = ["⏳ In Progress", "✅ Completed", "❌ Missed"];
   const categorized = [inProgress, completed, missed];

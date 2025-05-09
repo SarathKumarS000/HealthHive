@@ -22,6 +22,7 @@ import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -30,6 +31,7 @@ import {
 } from "../services/apiService";
 
 dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
@@ -332,7 +334,7 @@ const DashboardStat = ({ icon, label, value, color }) => (
 const OngoingChallenges = ({ challenges, navigate }) => {
   const ongoing = challenges.filter(
     (p) =>
-      p.progressPercentage < 100 && dayjs().isBefore(dayjs(p.endDate), "day")
+      p.progressPercentage < 100 && dayjs().isSameOrBefore(dayjs(p.endDate), "day")
   );
 
   return (

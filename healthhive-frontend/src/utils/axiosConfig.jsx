@@ -12,7 +12,7 @@ api.interceptors.response.use(
   (error) => {
     if (
       error.response &&
-      (error.response.status === 401 || error.response.status === 403)
+      (error.response.status === 401)
     ) {
       store.dispatch(logout());
       window.location.href = "/login";
